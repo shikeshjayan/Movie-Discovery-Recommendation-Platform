@@ -26,10 +26,7 @@ const Banner = () => {
     if (upcomingMovieList.length === 0) return null;
 
     const movie = upcomingMovieList[currentIndex];
-
-    console.log("movies", movie);
-
-
+    
     return (
         <section className="banner-page w-full h-[80vh] relative overflow-hidden">
             <img

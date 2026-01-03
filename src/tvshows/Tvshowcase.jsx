@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { popularTVShows } from "../services/tmdbApi"
+import { Link } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 8;
 const INTERVAL_TIME = 30000;
@@ -43,10 +44,16 @@ const Tvshowcase = () => {
                 {currentShows.slice(0, 8).map((shows) => {
                     return (
                         <div key={shows.id}>
-                            <div className="show-case">
-                                <img src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`} alt={shows.title} className="w-50 h-75 rounded shadow-md hover:scale-95" />
-                                <h5 className="w-50 px-2 px-auto">{shows.original_name}</h5>
-                            </div>
+                            <Link
+                                key={shows.id}
+                                to={`/tvshow/${shows.id}`}
+                                className="no-underline block"
+                            >
+                                <div className="show-case">
+                                    <img src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`} alt={shows.title} className="w-50 h-75 rounded shadow-md hover:scale-95" />
+                                    <h5 className="w-50 px-2 px-auto">{shows.original_name}</h5>
+                                </div>
+                            </Link>
                         </div>
                     )
                 })}

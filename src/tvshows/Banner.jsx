@@ -26,10 +26,7 @@ const Banner = () => {
   if (airingShowsList.length === 0) return null;
 
   const shows = airingShowsList[currentIndex];
-
-  console.log("Shows:", shows);
-
-
+  
   return (
     <section className="banner-page w-full h-[80vh] relative overflow-hidden">
       <img

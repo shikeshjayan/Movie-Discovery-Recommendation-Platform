@@ -207,15 +207,59 @@ export const similarMovies = async (id) => {
 };
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
+// Fetch for Similar TV Shows
+export const similarShows = async (id) => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/tv/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`
+        );
+        return response.data.results;
+    } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        return [];
+    }
+};
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
 // Fetch for Search Media
 export const fetchSearch = async (query) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching trending movies:", error);
-    return [];
-  }
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`
+        );
+        return response.data.results;
+    } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        return [];
+    }
+};
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
+// Fetch Movie Genre
+export const movieGenre = async () => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=en-US&page=1`
+        );
+        return response.data.genres;
+
+    } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        return [];
+    }
+};
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
+// Fetch Movie Genre
+export const tvShowGenre = async () => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/genre/tv/list?api_key=${API_KEY}&language=en-US&page=1`
+        );
+        return response.data.genres;
+
+    } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        return [];
+    }
 };

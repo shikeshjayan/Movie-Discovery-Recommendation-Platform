@@ -26,7 +26,6 @@ const Banner = () => {
   if (nowPlayingMoviesList.length === 0) return null;
 
   const movie = nowPlayingMoviesList[currentIndex];
-console.log("now playing", movie);
 
   return (
     <section className="banner-page w-full h-[80vh] relative overflow-hidden">

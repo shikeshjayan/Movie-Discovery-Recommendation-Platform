@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { popularMovies } from "../services/tmdbApi"
+import { Link } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 8;
 const INTERVAL_TIME = 30000;
@@ -45,10 +46,16 @@ const Moviecase = () => {
                 {currentMovies.slice(0, 8).map((movie) => {
                     return (
                         <div key={movie.id}>
-                            <div className="movie-case">
-                                <img src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`} alt={movie.title} className="w-50 h-75 rounded shadow-md" />
-                                <h5 className="w-50 px-2 px-auto">{movie.title}</h5>
-                            </div>
+                            <Link
+                                key={movie.id}
+                                to={`/movie/${movie.id}`}
+                                className="no-underline block"
+                            >
+                                <div className="movie-case">
+                                    <img src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`} alt={movie.title} className="w-50 h-75 rounded shadow-md" />
+                                    <h5 className="w-50 px-2 px-auto">{movie.title}</h5>
+                                </div>
+                            </Link>
                         </div>
                     )
                 })}

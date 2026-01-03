@@ -9,18 +9,22 @@ import MovieCard from "./movies/MovieCard";
 import TvShowCard from "./tvshows/TvShowCard"
 
 const router = createBrowserRouter([
+  // 1. Landing Page (The start page at '/')
   {
-    path: "/overview",
+    path: "/",
     element: <Overview />,
   },
 
+  // 2. Main App Layout (Pathless Route)
+  // Removing the 'path' prop allows this layout to wrap child routes
+  // like /movies and /home without adding a prefix to the URL.
   {
-    path: "/",
     element: <RootLayout />,
     errorElement: <NotFound />,
     children: [
+      // Move Home to "/home" so it doesn't conflict with Overview at "/"
       {
-        index: true,
+        path: "home",
         element: <Home />,
       },
       { path: "movies", element: <Movies /> },
