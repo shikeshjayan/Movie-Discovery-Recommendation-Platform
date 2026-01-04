@@ -1,49 +1,19 @@
-import { useEffect, useState } from "react";
-import { movieDetails, movieVideos } from "../services/tmdbApi";
 import { useNavigate, useParams } from "react-router-dom";
 import ImageWithLoader from "../ui/ImageWithLoader"
-import TrailerButton from "../ui/TrailerButton";
+import TrailerButton from "../components/TrailerButton";
 import MovieCardSkeleton from "../ui/MovieCardSkeleton";
 import SimilarMovies from "./SimilarMovies";
+import useMovieDetails from "../hooks/useMovieDetails";
 
 const MovieCard = () => {
     const navigate = useNavigate()
     const { id } = useParams();
-    const [movie, setMovie] = useState(null);
-    const [movieKey, setMovieKey] = useState(null);
-    const [loading, setLoading] = useState(true);
 
+    const { movie, movieKey, loading } = useMovieDetails(id);
 
-
-    useEffect(() => {
-        const fetchMovie = async () => {
-            setLoading(true);
-            const data = await movieDetails(id);
-            setMovie(data);
-            setLoading(false);
-        };
-        fetchMovie();
-    }, [id]);
-
-    useEffect(() => {
-
-        const fetchVideos = async () => {
-            const data = await movieVideos(id);
-            setMovieKey(data);
-        };
-        fetchVideos()
-    }, [id])
-
-
-
-    if (loading || !movie) {
+    if (loading || !movie || !movieKey) {
         return <MovieCardSkeleton />;
     }
-    if (!movieKey) {
-        return <div className="h-screen flex items-center justify-center text-white text-xl">Loading...</div>;
-    }
-
-
 
     const backdropUrl = movie.backdrop_path
         ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
@@ -52,16 +22,15 @@ const MovieCard = () => {
     const posterUrl = movie.poster_path
         ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
         : "/fallback-poster.jpg";
-
-
+    console.log(movie);
 
     return (
         <>
             <section className="movie-card relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
 
                 <button
-                    onClick={() => navigate("/movies")}
-                    className="text-white py-2 rounded absolute z-20 right-4 top-4 hover:text-blue-600"
+                    onClick={() => navigate(-1)}
+                    className="text-red-600 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
                 >
                     Close
                 </button>
@@ -98,26 +67,31 @@ const MovieCard = () => {
                             )}
                         </div>
 
-                        <div style={{ padding: "5px" }} className="flex flex-wrap justify-center md:justify-start gap-3">
-                            <span style={{ padding: "5px" }} className="w-14 px-3 py-1 bg-yellow-500 text-black font-bold rounded text-sm">
+                        <div className="flex flex-wrap justify-center items-center md:justify-start gap-3">
+                            <span className="w-auto px-4 py-1 bg-yellow-500 text-black font-bold rounded text-sm">
                                 ★ {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
                             </span>
-                            <span style={{ padding: "5px" }} className="w-14 px-3 py-1 bg-gray-700 text-gray-200 rounded text-sm">
+                            <span className="w-auto px-3 py-1 bg-gray-700 text-gray-200 rounded text-sm">
                                 {movie.release_date ? new Date(movie.release_date).getFullYear() : ""}
                             </span>
-                            <span style={{ padding: "5px" }} className="w-20 text-center px-3 py-1 bg-gray-700 text-gray-200 rounded text-sm">
+                            <span className="w-auto text-center px-3 py-1 bg-gray-700 text-gray-200 rounded text-sm">
                                 {movie.runtime} min
                             </span>
                         </div>
 
                         {/* Genres */}
-                        <div style={{ padding: "5px" }} className="flex flex-wrap justify-center text-center md:justify-start gap-2">
+                        <div className="flex flex-wrap justify-center items-center text-center md:justify-start gap-2">
                             {movie.genres?.map((g) => (
-                                <span key={g.id} className="w-25 px-3 py-1 border border-gray-600 text-gray-300 rounded text-xs uppercase tracking-wide">
+                                <span key={g.id} className="w-auto px-3 py-1 border border-gray-600 text-gray-300 rounded text-xs uppercase tracking-wide">
                                     {g.name}
                                 </span>
                             ))}
                         </div>
+                        <div>{movie.spoken_languages.map((lang) => {
+                            return (
+                                <div key={lang.name} className="w-20 px-3 py-1 border border-gray-600 text-gray-300 rounded text-xs uppercase tracking-wide">{lang.english_name}</div>
+                            )
+                        })}</div>
 
                         {/* Overview */}
                         <div className="max-w-2xl">
@@ -127,7 +101,9 @@ const MovieCard = () => {
                             </p>
                         </div>
 
-                        <TrailerButton movieKey={movieKey} />
+                        <div className="flex gap-2 items-center">
+                            <TrailerButton movieKey={movieKey} />
+                        </div>
 
                     </div>
                 </div>

@@ -1,17 +1,23 @@
 import { NavLink } from 'react-router-dom'
 import SearchBox from '../features/search/SearchBox'
 import { ThemeContext } from '../context/ThemeProvider'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { faMoon, faSun } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import CategoryWindow from './CategoryWindow'
 
 const Header = () => {
   const { theme, themeToggle } = useContext(ThemeContext)
+  const [isOpen, setIsOpen] = useState(true)
+
+  const handleCategoryWindow = () => {
+    setIsOpen(prev => !prev)
+  }
   return (
     <header>
-      <nav className={`fixed top-0 w-full h-20 flex justify-between items-center bg-transparent backdrop-blur-md z-20 py-4 shadow-md ${theme === "dark"
-        ? "bg-[#282A3D] text-[#ECF0FF]"
-        : "bg-white text-black"
+      <nav className={`fixed top-0 w-full h-20 flex justify-between items-center z-20 py-4 shadow-md ${theme === "dark"
+        ? "bg-[#252C37] text-[#ECF0FF]"
+        : "bg-[#ECF0FF] text-[#252C37]"
         }`}>
         <div className='text-3xl text-blue-500 animate-pulse'>RMDB</div>
         <ul className='flex gap-4 uppercase font-medium'>
@@ -22,9 +28,9 @@ const Header = () => {
         <div>
           <SearchBox />
         </div>
-        <button className='relative'>
+        <button onClick={handleCategoryWindow} className='relative'>
           <img src="/public/grid.png" alt="" />
-          {/* Category */}
+          <CategoryWindow isOpen={isOpen} />
         </button>
         <div className='flex gap-8'>
           <button onClick={themeToggle}>

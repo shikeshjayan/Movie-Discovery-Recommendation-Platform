@@ -25,6 +25,7 @@ export const nowPlayingMovies = async (page = 2) => {
             `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=${page}`
         );
         return response.data.results;
+
     } catch (error) {
         console.error("Error fetching trending movies:", error);
         return [];
@@ -66,11 +67,11 @@ export const popularMovies = async () => {
 export const popularTVShows = async () => {
     try {
         const response = await axios.get(
-            `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=1`
+            `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=2`
         );
         return response.data.results;
     } catch (error) {
-        console.error("Error fetching trending movies:", error);
+        console.error("Error fetching Popular Tv Shows movies:", error);
         return [];
     }
 };
@@ -78,24 +79,24 @@ export const popularTVShows = async () => {
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
 // Fetch All Movies
-export const allMovies = async () => {
+export const allMovies = async (page = 1) => {
     try {
         const response = await axios.get(
-            `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&page=1`
+            `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&page=${page}`
         );
         return response.data.results;
     } catch (error) {
-        console.error("Error fetching trending movies:", error);
+        console.error("Error fetching all movies:", error);
         return [];
     }
 };
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
 // Fetch All TV Shows
-export const allTvshows = async () => {
+export const allTvshows = async (page = 1) => {
     try {
         const response = await axios.get(
-            `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=2`
+            `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}`
         );
         return response.data.results;
     } catch (error) {
@@ -118,7 +119,6 @@ export const UpcomingShows = async (page = 2) => {
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
 // Fetch Movie Details
-
 export const movieDetails = async (id) => {
     try {
         const response = await axios.get(
@@ -156,7 +156,6 @@ export const movieVideos = async (id) => {
             `${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`
         );
         const results = response.data.results;
-        console.log("Movie Videos:", results);
         const trailer = results.find(
             (vid) => vid.site === "YouTube" && vid.type === "Trailer" || vid.type === "Teaser"
         );
@@ -178,8 +177,6 @@ export const showVideos = async (id) => {
             `${BASE_URL}/tv/${id}/videos?api_key=${API_KEY}&language=en-US`
         );
         const results = response.data.results;
-        console.log("TV Videos:", results);
-
         const trailer = results.find(
             (vid) => vid.site === "YouTube" && vid.type === "Trailer" || vid.type === "Teaser"
         );
@@ -251,15 +248,32 @@ export const movieGenre = async () => {
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
 // Fetch Movie Genre
-export const tvShowGenre = async () => {
+export const fetchMoviesByGenre = async (genre_id) => {
     try {
         const response = await axios.get(
-            `${BASE_URL}/genre/tv/list?api_key=${API_KEY}&language=en-US&page=1`
+            `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genre_id}`
         );
-        return response.data.genres;
+        return response.data.results;
 
     } catch (error) {
         console.error("Error fetching trending movies:", error);
         return [];
     }
 };
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
+// Fetch TV Shows Genre
+export const fetchTvShowsByGenre = async (genre_id) => {
+    try {
+        const response = await axios.get(
+            `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=${genre_id}`
+        );
+        return response.data.results;
+
+    } catch (error) {
+        console.error("Error fetching trending movies:", error);
+        return [];
+    }
+};
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#

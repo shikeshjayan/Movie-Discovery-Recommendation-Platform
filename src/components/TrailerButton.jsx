@@ -2,9 +2,6 @@ import { useState } from "react";
 import VideoPlayer from "../ui/VideoPlayer";
 
 const TrailerButton = ({ movieKey, tvKey }) => {
-
-    console.log(("Keys", tvKey));
-
     const [open, setOpen] = useState(false);
 
     if (!movieKey && !tvKey) {
@@ -28,6 +25,7 @@ const TrailerButton = ({ movieKey, tvKey }) => {
             >
                 ▶ Watch Trailer
             </button>
+            <button className="bg-blue-100 text-white px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 transition">Add to WishList</button>
 
             {/* Modal */}
             {open && (

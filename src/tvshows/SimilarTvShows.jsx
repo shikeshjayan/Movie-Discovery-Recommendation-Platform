@@ -41,12 +41,12 @@ const SimilarTvShows = () => {
             <h4 className='popular-shows text-3xl'>Similar TV Shows</h4>
             {
                 similarLoading && (
-                    <p className="text-gray-400 mt-6">Loading similar movies...</p>
+                    <p className="text-gray-400 mt-6">Loading similar TV Shows...</p>
                 )
             }
             {
                 !similarLoading && similar.length === 0 && (
-                    <p className="text-gray-500 mt-6">No similar movies found.</p>
+                    <p className="text-gray-500 mt-6">No similar TV Shows found.</p>
                 )
             }
             {/* Mapping Array of Popular_TV Shows_List */}
@@ -60,8 +60,8 @@ const SimilarTvShows = () => {
                                 className="no-underline block"
                             >
                                 <div className="movie-case cursor-pointer">
-                                    <img src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`} alt={shows.title} className="w-50 h-75 rounded shadow-md" />
-                                    <h5 className="w-50 px-2 px-auto">{shows.title}</h5>
+                                    <img src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`} alt={shows.title || shows.name} className="w-50 h-75 rounded shadow-md" />
+                                    <h5 className="w-50 px-2 px-auto">{shows.name || shows.title}</h5>
                                 </div>
                             </Link>
                         </div>

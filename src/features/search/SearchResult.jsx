@@ -4,10 +4,10 @@ const SearchResult = ({ movies, onClose }) => {
     const navigate = useNavigate();
 
     const handleItemClick = (id, type) => {
-        // Navigate to movie or tv show details
-        const route = type === 'tv' ? `/tvshows/${id}` : `/movie/${id}`;
+     
+        const route = type === 'tv' ? `/tvshow/${id}` : `/movie/${id}`;
         navigate(route);
-        if (onClose) onClose(); // Close the dropdown and clear input
+        if (onClose) onClose(); 
     };
 
     return (
@@ -19,7 +19,6 @@ const SearchResult = ({ movies, onClose }) => {
                         onClick={() => handleItemClick(item.id, item.media_type)}
                         className="flex items-center gap-3 p-3 hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-800 last:border-0"
                     >
-                        {/* Poster Image with Fallback */}
                         <img
                             src={item.poster_path
                                 ? `https://image.tmdb.org/t/p/w92${item.poster_path}`

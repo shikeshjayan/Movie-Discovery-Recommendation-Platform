@@ -1,8 +1,6 @@
 import YouTube from "react-youtube"
 
 const VideoPlayer = ({ videoKey }) => {
-    console.log("videoKey:", videoKey);
-
     const VideoPlayer = ({ videoKey }) => {
         if (!videoKey) return null;
     }

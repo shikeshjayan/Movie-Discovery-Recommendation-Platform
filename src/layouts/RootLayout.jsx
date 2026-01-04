@@ -9,8 +9,8 @@ const RootLayout = () => {
     <div>
       <Header />
       <main className={`mt-20 max-w-screen min-h-screen ${theme === "dark"
-        ? "bg-[#282A3D] text-[#ECF0FF]"
-        : "bg-white text-black"
+        ? "bg-[#252C37] text-[#ECF0FF]"
+        : "bg-[#ECF0FF] text-[#252C37]"
         }`}>
         <Outlet />
       </main>

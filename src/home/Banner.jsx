@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { UpcomingMovies } from "../services/tmdbApi";
+import ImageWithLoader from "../ui/ImageWithLoader"
 
 const Banner = () => {
     const [upcomingMovieList, setUpcomingMovieList] = useState([]);
@@ -26,29 +27,45 @@ const Banner = () => {
     if (upcomingMovieList.length === 0) return null;
 
     const movie = upcomingMovieList[currentIndex];
-    
+
+  if (!movie || !movie.backdrop_path) return null;
+
     return (
-        <section className="banner-page w-full h-[80vh] relative overflow-hidden">
-            <img
+        <section className="relative w-full h-[80vh] overflow-hidden">
+            {/* Image */}
+            <ImageWithLoader
+                key={movie.id}
                 src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
                 alt={movie.title}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="backdrop-image absolute bottom-[30%] left-6 w-200 h-100 bg-black/40 backdrop-blur-lg">
-                <h2 className="flex flex-col text-white text-5xl font-bold rounded-md">
+
+            {/* Black fog */}
+            <div
+                className="absolute bottom-0 left-0 w-full h-[45%]
+             bg-black/40 backdrop-blur-lg
+             mask-[linear-gradient(to_top,black_70%,transparent_100%)]
+             [-webkit-mask-image:linear-gradient(to_top,black_70%,transparent_100%)]">
+            </div>
+
+            {/* Text */}
+            <div className="relative z-10 bottom-[50%] left-6 max-w-3xl">
+                <h2 className="text-white text-7xl font-bold">
                     {movie.original_title || movie.title}
                 </h2>
-                <p className="text-yellow-500 text-lg font-bold rounded-md">
-                    {movie.vote_average} / 10
+
+                <p className="text-yellow-500 text-sm font-bold">
+                    {movie.vote_average.toFixed(1)} / 10
                 </p>
-                <p className="text-white text-lg font-bold rounded-md">
-                    Language: {movie.original_language}
+
+                <p className="text-white text-sm italic font-bold">
+                    {movie.original_language}
                 </p>
-                <p className="text-white text-1xl font-bold rounded-md">
+
+                <p className="text-white text-lg font-light leading-relaxed">
                     {movie.overview}
                 </p>
             </div>
-
         </section>
     );
 };

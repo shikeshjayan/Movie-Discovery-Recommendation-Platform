@@ -39,28 +39,47 @@ const Moviecase = () => {
 
 
     return (
-        <section className='flex flex-col gap-4'>
-            <h4 className='popular-movies text-3xl'>Popular Movies</h4>
-            {/* Mapping Array of Popular_Movies_List */}
-            <div className="grid sm:grid-cols-1 md:grid-cols-6 lg:grid-cols-8 justify-items-center">
-                {currentMovies.slice(0, 8).map((movie) => {
-                    return (
-                        <div key={movie.id}>
-                            <Link
-                                key={movie.id}
-                                to={`/movie/${movie.id}`}
-                                className="no-underline block"
-                            >
-                                <div className="movie-case">
-                                    <img src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`} alt={movie.title} className="w-50 h-75 rounded shadow-md" />
-                                    <h5 className="w-50 px-2 px-auto">{movie.title}</h5>
-                                </div>
-                            </Link>
-                        </div>
-                    )
-                })}
-            </div>
+        <section className="flex flex-col gap-4">
+            <h4 className="popular-movies text-3xl">Popular Movies</h4>
 
+            <div className="grid gap-4 justify-items-center grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
+                {currentMovies.slice(0, 8).map((movie) => (
+                    <Link
+                        key={movie.id}
+                        to={`/movie/${movie.id}`}
+                        className="group relative no-underline"
+                    >
+                        {/* Card */}
+                        <div className="movie-case relative">
+                            <img
+                                src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                                alt={movie.title}
+                                className="w-50 h-75 rounded shadow-md"
+                            />
+
+                            {/* Rating badge */}
+                            <span
+                                className="absolute bottom-2 left-2
+                       bg-yellow-500 text-black font-bold text-sm
+                       px-3 py-1 rounded
+                       opacity-0 group-hover:opacity-100
+                       transition-opacity duration-300"
+                            >
+                                ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
+                            </span>
+                            <button onClick={() => {
+                                console.log("Wishlisted");
+                            }} className="absolute top-1 right-1 opacity-0 group-hover:opacity-100
+                       transition-opacity duration-300">❤︎</button>
+                        </div>
+
+                        {/* Title */}
+                        <h5 className="mt-2 w-50 text-center">
+                            {movie.title}
+                        </h5>
+                    </Link>
+                ))}
+            </div>
         </section>
     )
 }

@@ -1,6 +1,16 @@
+import { Navigate, useNavigate } from "react-router-dom";
+
 const MovieCardSkeleton = () => {
+    const navigate = useNavigate()
+
     return (
         <div className="relative w-full min-h-[90vh] bg-gray-900 p-10 animate-pulse overflow-hidden">
+            <button
+                onClick={() => navigate(-1)}
+                className="text-white py-2 rounded fixed z-20 right-6 top-30 hover:text-blue-600"
+            >
+                Close
+            </button>
             {/* Background */}
             <div className="absolute inset-0 bg-gray-800 opacity-40"></div>
 
