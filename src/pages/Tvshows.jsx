@@ -4,10 +4,12 @@ import { Link } from "react-router-dom"
 import Banner from "../tvshows/Banner"
 import GenreBar from "../tvshows/GenreBar"
 import ImageWithLoader from "../ui/ImageWithLoader"
+import { useHistory } from "../context/HistoryContext"
 
 const Movies = () => {
   const [tvShows, setTvShows] = useState([])
   const [page, setPage] = useState(1)
+  const { addToHistory } = useHistory()
 
   useEffect(() => {
     allTvshows(page).then(setTvShows)
@@ -39,6 +41,17 @@ const Movies = () => {
           return (
             <Link
               key={shows.id}
+
+              onClick={() =>
+                addToHistory({
+                  id: shows.id,
+                  title: shows.title,
+                  poster_path: shows.poster_path,
+                  vote_average: shows.vote_average,
+                  type: "shows",
+                })
+              }
+
               to={`/tvshow/${shows.id}`}
               className="no-underline block"
             >
@@ -47,7 +60,7 @@ const Movies = () => {
                   src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`}
                   alt={shows.original_name || shows.original_title}
                   className="w-50 h-75 rounded shadow-md object-cover"
-                  onError={(e) => { e.target.src = "/Loader.gif" }}
+                  onError={(e) => { e.target.src = "/Loader.svg" }}
                 />
                 <h5 className="w-50 px-2 px-auto">{shows.name || shows.original_name || shows.title}</h5>
               </div>

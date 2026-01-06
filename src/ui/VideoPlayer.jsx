@@ -26,12 +26,6 @@ const VideoPlayer = ({ videoKey }) => {
     return (
         <div className="w-full sm:max-w-90 md:max-w-3xl lg:max-w-5xl mx-auto mt-10">
             <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-
-                {/* Optional title overlay */}
-                <h2 className="absolute top-2 left-2 z-10 text-white text-sm font-semibold">
-                    Title
-                </h2>
-
                 <YouTube
                     videoId={videoKey}
                     className="absolute inset-0 w-full h-full"

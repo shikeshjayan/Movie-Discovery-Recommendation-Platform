@@ -1,11 +1,13 @@
 import { Link, useParams } from "react-router-dom";
 import { similarShows } from "../services/tmdbApi"
 import { useEffect, useState } from "react";
+import { useHistory } from "../context/HistoryContext";
 
 const SimilarTvShows = () => {
     const { id } = useParams();
     const [similar, setSimilar] = useState([]);
     const [similarLoading, setSimilarLoading] = useState(true);
+    const { addToHistory } = useHistory()
 
     // Fetch Similar
     useEffect(() => {
@@ -56,6 +58,18 @@ const SimilarTvShows = () => {
                         <div key={shows.id}>
                             <Link
                                 key={shows.id}
+
+                                onClick={() =>
+                                    addToHistory({
+                                        id: shows.id,
+                                        title: shows.title,
+                                        poster_path: shows.poster_path,
+                                        vote_average: shows.vote_average,
+                                        type: "shows",
+                                    })
+                                }
+
+
                                 to={`/tvshow/${shows.id}`}
                                 className="no-underline block"
                             >

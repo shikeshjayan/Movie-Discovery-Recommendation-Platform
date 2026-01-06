@@ -1,20 +1,37 @@
-import { Children, createContext, useState } from "react"
+import { Children, createContext, useEffect, useState } from "react";
 
-export const ThemeContext = createContext()
+export const ThemeContext = createContext();
 
 const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || getSystemTheme();
+  });
 
-    const [theme, setTheme] = useState("dark")
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => {
+      localStorage.setItem("theme", theme);
+      setTheme(e.matches ? "dark" : "light");
+    };
 
-    const themeToggle = () => {
-        setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark")
-    }
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
-    return (
-        <ThemeContext.Provider value={{ theme, themeToggle }}>
-            {children}
-        </ThemeContext.Provider>
-    )
-}
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
-export default ThemeProvider
+  const themeToggle = () => {
+    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, themeToggle }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export default ThemeProvider;

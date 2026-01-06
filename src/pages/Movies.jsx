@@ -4,9 +4,11 @@ import { Link } from "react-router-dom"
 import Banner from "../movies/Banner"
 import GenreBar from "../movies/GenreBar"
 import ImageWithLoader from "../ui/ImageWithLoader"
+import { useHistory } from "../context/HistoryContext"
 const Movies = () => {
   const [movies, setmovies] = useState([])
   const [page, setPage] = useState(1)
+  const { addToHistory } = useHistory()
 
   useEffect(() => {
     allMovies(page).then(setmovies)
@@ -41,6 +43,17 @@ const Movies = () => {
             <Link
               key={movie.id}
               to={`/movie/${movie.id}`}
+
+              onClick={() =>
+                addToHistory({
+                  id: movie.id,
+                  title: movie.title,
+                  poster_path: movie.poster_path,
+                  vote_average: movie.vote_average,
+                  type: "movie",
+                })
+              }
+
               className="no-underline block"
             >
               <div className="movie-case">
@@ -48,7 +61,7 @@ const Movies = () => {
                   src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
                   alt={movie.original_title || movie.name}
                   className="w-50 h-75 rounded shadow-md object-cover"
-                  onError={(e) => { e.target.src = "/Loader.gif" }}
+                  onError={(e) => { e.target.src = "/Loader.svg" }}
                 />
                 <h5 className="w-50 px-2 px-auto">{movie.name}</h5>
               </div>

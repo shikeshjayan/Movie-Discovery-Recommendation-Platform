@@ -1,11 +1,13 @@
 import { Link, useParams } from "react-router-dom";
 import { similarMovies } from "../services/tmdbApi"
 import { useEffect, useState } from "react";
+import { useHistory } from "../context/HistoryContext";
 
 const SimilarMovies = () => {
   const { id } = useParams();
   const [similar, setSimilar] = useState([]);
   const [similarLoading, setSimilarLoading] = useState(true);
+  const { addToHistory } = useHistory()
 
   // Fetch Similar
   useEffect(() => {
@@ -37,7 +39,7 @@ const SimilarMovies = () => {
 
   return (
     <article className='flex flex-col gap-4'>
-      <h4 className='popular-movies text-3xl'>Similar Movies</h4>
+      <h4 className='popular-movies text-3xl'>You might also like</h4>
       {
         similarLoading && (
           <p className="text-gray-400 mt-6">Loading similar movies...</p>
@@ -55,6 +57,18 @@ const SimilarMovies = () => {
             <div key={movie.id}>
               <Link
                 key={movie.id}
+
+                onClick={() =>
+                  addToHistory({
+                    id: movie.id,
+                    title: movie.title,
+                    poster_path: movie.poster_path,
+                    vote_average: movie.vote_average,
+                    type: "movie",
+                  })
+                }
+
+
                 to={`/movie/${movie.id}`}
                 className="no-underline block"
               >

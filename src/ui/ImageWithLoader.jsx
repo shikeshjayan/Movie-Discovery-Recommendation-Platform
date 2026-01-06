@@ -3,7 +3,7 @@ import { useState } from "react";
 const ImageWithLoader = ({
     src,
     alt,
-    fallback = "/Loader.gif",
+    fallback = "/Loader.svg",
 }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);

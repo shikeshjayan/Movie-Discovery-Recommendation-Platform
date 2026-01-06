@@ -1,0 +1,78 @@
+import { useEffect, useState } from "react";
+import { movieReviews } from "../services/tmdbApi";
+import { useParams } from "react-router-dom";
+import StarRating from "../components/StarRating";
+
+const ReviewWindow = () => {
+  const { id } = useParams();
+  const [reviews, setReviews] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await movieReviews(id, { signal: controller.signal });
+
+        const sortedCast = [...(data ?? [])].sort(
+          (a, b) => b.popularity - a.popularity
+        );
+
+        setReviews(sortedCast);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError("Failed to load reviews");
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [id]);
+
+  if (loading) return <p>Loading cast...</p>;
+  if (error) return <p>{error}</p>;
+  if (!reviews.length) return <p>No reviews available.</p>;
+
+  console.log("Reviews:", reviews);
+
+  return (
+    <>
+      {reviews.map((review) => {
+        const { rating, avatar_path } = review.author_details || {};
+        const avatarUrl = avatar_path
+          ? avatar_path.startsWith("/") && !avatar_path.startsWith("/http")
+            ? `https://image.tmdb.org/t/p/w45${avatar_path}`
+            : avatar_path.substring(1)
+          : "https://www.gravatar.com/avatar/?d=mp";
+
+        return (
+          <div
+            key={review.id}
+            className="bg-neutral-50 text-gray-950 p-4 shadow rounded m-8"
+          >
+            <div className="flex items-center justify-between px-10">
+              <img
+                src={avatarUrl}
+                alt={review.author}
+                className="w-10 h-10 object-cover rounded-full border-2"
+              />
+              <h4 className="font-medium">{review.author}</h4>
+              <StarRating value={rating ? rating / 2 : 0} />
+            </div>
+            <div className="pl-10 pt-4 italic text-sm">
+              {new Date(review.created_at).toLocaleDateString()}
+            </div>
+            <p className="pl-10 mt-2">{review.content}</p>
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+export default ReviewWindow;

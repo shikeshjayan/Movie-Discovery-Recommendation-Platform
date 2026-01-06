@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { popularTVShows } from "../services/tmdbApi"
 import { Link } from "react-router-dom";
+import { useHistory } from "../context/HistoryContext";
 
 const ITEMS_PER_PAGE = 8;
 const INTERVAL_TIME = 30000;
@@ -8,6 +9,9 @@ const INTERVAL_TIME = 30000;
 const Tvshowcase = () => {
     const [popularShowsList, setPopularShowsList] = useState([])
     const [pageIndex, setPageIndex] = useState(0)
+
+    const { addToHistory } = useHistory()
+
 
 
     // Auto-rotate pages
@@ -38,13 +42,25 @@ const Tvshowcase = () => {
     }, [])
     return (
         <section className="flex flex-col gap-4">
-            <h4 className="popular-movies text-3xl">Popular Movies</h4>
+            <h4 className="popular-movies text-3xl">Popular TV Shows</h4>
 
             <div className="grid gap-4 justify-items-center grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
                 {currentShows.slice(0, 8).map((show) => (
                     <Link
                         key={show.id}
                         to={`/movie/${show.id}`}
+
+                        onClick={() =>
+                            addToHistory({
+                                id: show.id,
+                                title: show.title,
+                                poster_path: show.poster_path,
+                                vote_average: show.vote_average,
+                                type: "show",
+                            })
+                        }
+
+
                         className="group relative no-underline"
                     >
                         {/* Card */}
