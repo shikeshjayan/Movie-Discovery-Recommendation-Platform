@@ -1,101 +1,73 @@
-import { useEffect, useState } from "react"
-import { popularTVShows } from "../services/tmdbApi"
+import { useEffect, useState } from "react";
+import { popularTVShows } from "../services/tmdbApi";
 import { Link } from "react-router-dom";
 import { useHistory } from "../context/HistoryContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-regular-svg-icons";
 
-const ITEMS_PER_PAGE = 8;
-const INTERVAL_TIME = 30000;
+const Moviecase = () => {
+  const [popularShowsList, setPopularShowsList] = useState([]);
+  const { addToHistory } = useHistory();
 
-const Tvshowcase = () => {
-    const [popularShowsList, setPopularShowsList] = useState([])
-    const [pageIndex, setPageIndex] = useState(0)
+  useEffect(() => {
+    popularTVShows().then(setPopularShowsList);
+  }, []);
 
-    const { addToHistory } = useHistory()
+  return (
+    <section className="flex flex-col gap-4">
+      <h4 className="popular-movies text-3xl">Popular TV Shows</h4>
 
+      <div
+        className="flex gap-4 overflow-x-auto pb-4
+      [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 hover:dark:[&::-webkit-scrollbar-thumb]:bg-blue-500"
+      >
+        {popularShowsList.map((shows) => (
+          <Link
+            key={shows.id}
+            to={`/tvshow/${shows.id}`}
+            onClick={() =>
+              addToHistory({
+                id: shows.id,
+                title: shows.title,
+                poster_path: shows.poster_path,
+                vote_average: shows.vote_average,
+                type: "shows",
+              })
+            }
+            className="group relative no-underline shrink-0"
+          >
+            <div className="movie-case relative w-50">
+              <img
+                src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`}
+                alt={shows.title}
+                className="w-full rounded shadow-md"
+              />
 
+              <span className="absolute bottom-2 left-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                ★ {shows.vote_average?.toFixed(1) ?? "N/A"}
+              </span>
 
-    // Auto-rotate pages
-    useEffect(() => {
-        if (popularShowsList.length === 0) return;
-
-        const totalPages = Math.ceil(
-            popularShowsList.length / ITEMS_PER_PAGE
-        );
-
-        const interval = setInterval(() => {
-            setPageIndex((prev) => (prev + 1) % totalPages);
-        }, INTERVAL_TIME);
-
-        return () => clearInterval(interval);
-    }, [popularShowsList]);
-
-    const start = pageIndex * ITEMS_PER_PAGE;
-    const currentShows = popularShowsList.slice(
-        start,
-        start + ITEMS_PER_PAGE
-    );
-
-
-    useEffect(() => {
-        popularTVShows().then(setPopularShowsList)
-
-    }, [])
-    return (
-        <section className="flex flex-col gap-4">
-            <h4 className="popular-movies text-3xl">Popular TV Shows</h4>
-
-            <div className="grid gap-4 justify-items-center grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
-                {currentShows.slice(0, 8).map((show) => (
-                    <Link
-                        key={show.id}
-                        to={`/movie/${show.id}`}
-
-                        onClick={() =>
-                            addToHistory({
-                                id: show.id,
-                                title: show.title,
-                                poster_path: show.poster_path,
-                                vote_average: show.vote_average,
-                                type: "show",
-                            })
-                        }
-
-
-                        className="group relative no-underline"
-                    >
-                        {/* Card */}
-                        <div className="movie-case relative">
-                            <img
-                                src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
-                                alt={show.title || show.name}
-                                className="w-50 h-75 rounded shadow-md"
-                            />
-
-                            {/* Rating badge */}
-                            <span
-                                className="absolute bottom-2 left-2
-                       bg-yellow-500 text-black font-bold text-sm
-                       px-3 py-1 rounded
-                       opacity-0 group-hover:opacity-100
-                       transition-opacity duration-300"
-                            >
-                                ★ {show.vote_average?.toFixed(1) ?? "N/A"}
-                            </span>
-                            <button onClick={() => {
-                                console.log("Wishlisted");
-                            }} className="absolute top-1 right-1 opacity-0 group-hover:opacity-100
-                       transition-opacity duration-300">❤︎</button>
-                        </div>
-
-                        {/* Title */}
-                        <h5 className="mt-2 w-50 text-center">
-                            {show.title || show.name}
-                        </h5>
-                    </Link>
-                ))}
+              <button
+                onClick={(e) => {
+                  e.preventDefault(); // prevent navigation
+                  console.log("Wishlisted");
+                }}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              >
+                <FontAwesomeIcon icon={faHeart} style={{ color: "#FFFFFF" }} />
+              </button>
             </div>
-        </section>
-    )
-}
 
-export default Tvshowcase
+            <h5 className="mt-2 text-center">{shows.title}</h5>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default Moviecase;

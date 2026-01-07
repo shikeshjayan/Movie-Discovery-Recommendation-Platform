@@ -55,7 +55,7 @@ const ReviewWindow = () => {
             key={review.id}
             className="bg-neutral-50 text-gray-950 p-4 shadow rounded m-8"
           >
-            <div className="flex items-center justify-between px-10">
+            <div className="flex flex-col lg:flex-row items-center justify-between px-10">
               <img
                 src={avatarUrl}
                 alt={review.author}

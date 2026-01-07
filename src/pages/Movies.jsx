@@ -36,7 +36,7 @@ const Movies = () => {
       <GenreBar setGenre={handleGenreChange} />
       <h4 className='popular-movies text-3xl'>Movies</h4>
       {/* Mapping Array of Popular_Movies_List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-4 justify-items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4">
         {movies.slice(0, 16).map((movie) => {
           if (!movie.poster_path) return null;
           return (

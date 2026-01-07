@@ -2,50 +2,53 @@ import { useState } from "react";
 import VideoPlayer from "../ui/VideoPlayer";
 
 const TrailerButton = ({ movieKey, tvKey }) => {
-    const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-    if (!movieKey && !tvKey) {
-        return (
-            <button
-                disabled
-                className="bg-gray-600 text-white px-6 py-2 h-10 rounded mt-4 cursor-not-allowed"
-            >
-                Trailer Not Available
-            </button>
-        );
-    }
-
-
+  if (!movieKey && !tvKey) {
     return (
-        <>
-            {/* Play Button */}
+      <button
+        disabled
+        className="bg-gray-600 text-white px-6 py-2 h-10 rounded mt-4 cursor-not-allowed"
+      >
+        Trailer Not Available
+      </button>
+    );
+  }
+
+  return (
+    <>
+      {/* Play Button */}
+      <div className="flex flex-col lg:flex-row justify-center items-center gap-4">
+        <button
+          onClick={() => setOpen(true)}
+          className="bg-blue-600 text-white px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 transition"
+        >
+          ▶ Watch Trailer
+        </button>
+        <button className="bg-blue-100 text-black px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 hover:text-white transition">
+          Add to WishList
+        </button>
+      </div>
+
+      {/* Modal */}
+      {open && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="w-full max-w-5xl relative">
+            {/* Close Button */}
             <button
-                onClick={() => setOpen(true)}
-                className="bg-blue-600 text-white px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 transition"
+              onClick={() => setOpen(false)}
+              className="absolute -top-10 right-0 text-white text-xl hover:text-red-500"
             >
-                ▶ Watch Trailer
+              ✕ Close
             </button>
-            <button className="bg-blue-100 text-black px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 hover:text-white transition">Add to WishList</button>
 
-            {/* Modal */}
-            {open && (
-                <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-                    <div className="w-full max-w-5xl relative">
-                        {/* Close Button */}
-                        <button
-                            onClick={() => setOpen(false)}
-                            className="absolute -top-10 right-0 text-white text-xl hover:text-red-500"
-                        >
-                            ✕ Close
-                        </button>
+            {/* Video */}
+            <VideoPlayer videoKey={movieKey || tvKey} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
-                        {/* Video */}
-                        <VideoPlayer videoKey={movieKey || tvKey} />
-                    </div>
-                </div>
-            )}
-        </>
-    )
-}
-
-export default TrailerButton
+export default TrailerButton;

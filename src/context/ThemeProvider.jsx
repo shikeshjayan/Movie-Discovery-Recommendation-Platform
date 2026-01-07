@@ -2,6 +2,9 @@ import { Children, createContext, useEffect, useState } from "react";
 
 export const ThemeContext = createContext();
 
+const getSystemTheme = () =>
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
 const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("theme") || getSystemTheme();
@@ -9,6 +12,7 @@ const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    
     const handleChange = (e) => {
       localStorage.setItem("theme", theme);
       setTheme(e.matches ? "dark" : "light");

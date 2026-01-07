@@ -6,7 +6,9 @@ import Movies from "./pages/Movies";
 import NotFound from "./pages/NotFound";
 import Tvshows from "./pages/Tvshows";
 import MovieCard from "./movies/MovieCard";
-import TvShowCard from "./tvshows/TvShowCard"
+import TvShowCard from "./tvshows/TvShowCard";
+import Signin from "./components/Signin";
+import Signup from "./components/Signup";
 
 const router = createBrowserRouter([
   {
@@ -25,6 +27,8 @@ const router = createBrowserRouter([
       { path: "movie/:id", element: <MovieCard /> },
       { path: "tvshows", element: <Tvshows /> },
       { path: "tvshow/:id", element: <TvShowCard /> },
+      { path: "signin", element: <Signin /> },
+      { path: "signup", element: <Signup /> },
     ],
   },
 ]);

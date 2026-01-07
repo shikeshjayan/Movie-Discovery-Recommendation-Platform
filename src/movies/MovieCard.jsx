@@ -38,7 +38,7 @@ const MovieCard = () => {
       <section className="movie-card relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
         <button
           onClick={() => navigate(-1)}
-          className="text-red-600 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
+          className="hidden sm:block text-red-600 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
         >
           Close
         </button>

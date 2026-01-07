@@ -19,7 +19,7 @@ const Banner = () => {
       setCurrentIndex((prev) =>
         prev === airingShowsList.length - 1 ? 0 : prev + 1
       );
-    }, 3000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [airingShowsList]);

@@ -52,7 +52,7 @@ const SimilarTvShows = () => {
                 )
             }
             {/* Mapping Array of Popular_TV Shows_List */}
-            <div className="grid sm:grid-cols-1 md:grid-cols-6 lg:grid-cols-8 justify-items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center">
                 {similar.slice(0, 16).map((shows) => {
                     return (
                         <div key={shows.id}>
