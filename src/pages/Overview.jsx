@@ -1,30 +1,30 @@
-// inside Overview.jsx
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function Overview() {
-  const [name, setName] = useState(() => {
-    const saved = localStorage.getItem('user_name')
-    return saved || "";
-  })
+const Overview = () => {
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    localStorage.setItem('user_name', name)
-  }, [name])
+  if (loading) return null;
 
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
 
-  const navigate = useNavigate();
   return (
-    <div className="overview-page flex flex-col justify-center items-center p-8">
-      <div className="layer flex flex-col justify-center items-center gap-8 bg-neutral-300/50 backdrop-blur-2xl p-4">
-        <h1 className="sm:text-2xl md:text-3xl lg:text-6xl text-white">Recommended Movie Database</h1>
-        <form className="flex gap-0.5">
-          <input onChange={(e) => setName(e.target.value)} value={name || ""} type="text" placeholder="Enter your emailaddress" className="border border-white sm:w-1xl md:w-2xl lg:w-4xl md:h-12 lg:h-14 px-4" />
-          <button className="text-1xl text-white border cursor-pointer bg-blue-700 px-4" onClick={() => navigate("/home")}>
-            Get Started
-          </button>
-        </form>
+    <section className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <h1 className="text-3xl font-bold">Welcome to Movie App</h1>
+      <p>Please login to access the platform</p>
+
+      <div className="flex gap-4">
+        <Link to="/signin" className="px-4 py-2 bg-blue-600 text-white rounded">
+          Login
+        </Link>
+        <Link to="/signup" className="px-4 py-2 border rounded">
+          Sign Up
+        </Link>
       </div>
-    </div>
+    </section>
   );
-}
+};
+
+export default Overview;

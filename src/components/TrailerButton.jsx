@@ -25,9 +25,6 @@ const TrailerButton = ({ movieKey, tvKey }) => {
         >
           ▶ Watch Trailer
         </button>
-        <button className="bg-blue-100 text-black px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 hover:text-white transition">
-          Add to WishList
-        </button>
       </div>
 
       {/* Modal */}

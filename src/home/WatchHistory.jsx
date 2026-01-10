@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { useHistory } from "../context/HistoryContext";
-import ConfirmationModal from "../components/ConfirmationModal";
 import { useConfirmation } from "../hooks/useConfirmation";
+import ConfirmModal from "../ui/ConfirmModal";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const WatchHistory = () => {
   const { history, removeFromHistory, clearHistory } = useHistory();
@@ -64,32 +66,36 @@ const WatchHistory = () => {
                 className="w-full rounded shadow-md"
               />
 
-              <span
+              <button
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   openSingle(item.id);
                 }}
-                className="absolute top-1 right-1 cursor-pointer opacity-25 hover:opacity-100"
+                aria-label="Remove from history"
+                className="
+    absolute top-2 right-2
+    bg-black/70 hover:bg-red-600
+    text-white
+    rounded-full
+    w-7 h-7
+    flex items-center justify-center
+    opacity-0 group-hover:opacity-100
+    transition
+  "
               >
-                <img
-                  src="/close_small_white.svg"
-                  alt=""
-                  className="block group-hover:hidden"
-                />
-                <img
-                  src="/close_small_red.svg"
-                  alt=""
-                  className="hidden group-hover:block"
-                />
-              </span>
+                <FontAwesomeIcon icon={faXmark} size="sm" />
+              </button>
             </div>
 
-            <h5 className="mt-2 text-center text-sm ">{item.name || item.original_name || item.title}</h5>
+            <h5 className="mt-2 text-center text-sm ">
+              {item.name || item.original_name || item.title}
+            </h5>
           </Link>
         ))}
       </div>
 
-      <ConfirmationModal
+      <ConfirmModal
         open={isOpen}
         onConfirm={confirmActionHandler}
         onCancel={close}

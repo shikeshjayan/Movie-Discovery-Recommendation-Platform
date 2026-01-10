@@ -50,7 +50,7 @@ const Banner = () => {
 
             {/* Text */}
             <div className="relative z-10 bottom-[50%] left-6 max-w-3xl">
-                <h2 className="text-white text-7xl font-bold">
+                <h2 className="text-white lg:text-7xl font-bold">
                     {movie.original_title || movie.title}
                 </h2>
 
@@ -62,7 +62,7 @@ const Banner = () => {
                     {movie.original_language}
                 </p>
 
-                <p className="text-white text-lg font-light leading-relaxed">
+                <p className="text-white md:text-lg font-light leading-relaxed">
                     {movie.overview}
                 </p>
             </div>

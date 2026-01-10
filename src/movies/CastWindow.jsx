@@ -54,10 +54,10 @@ const CastWindow = () => {
                 : "/Loader.svg"
             }
             alt={actor.name}
-            className="max-w-40 h-60 object-cover rounded mx-4"
+            className="max-w-40 h-60 object-cover rounded mx-4 flex-w"
           />
           <p className="mt-2 font-semibold">{actor.name}</p>
-          <p className="text-sm text-gray-600">as {actor.character}</p>
+          <p className="max-w-40 text-sm text-gray-600">as {actor.character}</p>
         </div>
       ))}
     </div>

@@ -62,7 +62,7 @@ const Moviecase = () => {
               </button>
             </div>
 
-            <h5 className="mt-2 text-center">{shows.title}</h5>
+            <h5 className="mt-2 text-center">{shows.title || shows.name}</h5>
           </Link>
         ))}
       </div>

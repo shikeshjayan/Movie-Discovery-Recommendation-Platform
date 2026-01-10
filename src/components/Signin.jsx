@@ -3,12 +3,22 @@ import { useForm } from "react-hook-form";
 import { signinSchema } from "../validation/authSchema";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import { ThemeContext } from "../context/ThemeProvider";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
 const Signin = () => {
+  const navigate = useNavigate();
+  const { theme } = useContext(ThemeContext);
+
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(signinSchema),
     mode: "onSubmit",
@@ -25,29 +35,48 @@ const Signin = () => {
       );
 
       console.log("Login Success:", userCredential.user);
+      const redirectTo = location.state?.from || "/home";
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       if (error.code === "auth/wrong-password") {
         alert("Incorrect password");
       }
       if (error.code === "auth/user-not-found") {
         alert("No account found with this email");
+      } else {
+        alert("Login failed");
       }
     }
   };
+
+  const toggleVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
   return (
-    <section className="min-h-screen w-screen grid place-items-center bg-gray-100">
-      <div className="bg-white w-full max-w-4xl h-125 flex rounded-lg shadow-lg overflow-hidden">
+    <section
+      className={`min-h-screen w-full flex items-center justify-center mx-auto${
+        theme === "dark"
+          ? "bg-[#312F2C] text-[#ECF0FF]"
+          : "bg-[#ECF0FF] text-[#312F2C]"
+      }`}
+    >
+      <div className="bg-[#ECF0FF] w-full max-w-4xl h-150 flex rounded-lg shadow-lg overflow-hidden">
         {/* Left side */}
-        <div className="hidden md:flex w-1/2 bg-red-400 items-center justify-center">
-          <span className="text-white text-2xl font-bold">
-            <img src="/signupCover.jpg" alt="" className="object-cover" />
-          </span>
+        <div className="hidden md:block w-1/2 relative">
+          <img
+            src="/signupCover.jpg"
+            alt="Cover"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
 
         {/* Right side */}
         <div className="relative w-full md:w-1/2 p-8 flex flex-col justify-center">
           <h4 className="text-2xl font-semibold mb-6 text-blue-500">Log In</h4>
-          <h5 className="absolute top-4 right-4 text-blue-500 cursor-pointer">
+          <h5
+            onClick={() => navigate("/signup")}
+            className="absolute top-4 right-4 text-blue-500 cursor-pointer"
+          >
             Sign Up
           </h5>
 
@@ -62,7 +91,7 @@ const Signin = () => {
               <input
                 id="email"
                 type="email"
-                className="border border-blue-300 rounded px-3 py-2"
+                className="border text-[#312F2C] border-blue-300 rounded px-3 py-2"
                 {...register("email")}
               />
               <p>{errors.email?.message}</p>
@@ -72,19 +101,33 @@ const Signin = () => {
               <label htmlFor="password" className="text-blue-300">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                className="border border-blue-300 rounded px-3 py-2"
-                {...register("password")}
-              />
+              <div className="flex items-center">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  className="relative border text-[#312F2C] border-blue-300 rounded px-3 py-2 w-full"
+                  {...register("password")}
+                />
+                <span
+                  onClick={toggleVisibility}
+                  className="absolute right-10 text-[#312F2C]"
+                >
+                  {showPassword === true ? (
+                    <FontAwesomeIcon icon={faEye} />
+                  ) : (
+                    <FontAwesomeIcon icon={faEyeSlash} />
+                  )}
+                </span>
+              </div>
+              {/*  */}
               <p>{errors.password?.message}</p>
             </div>
             <button
+              disabled={isSubmitting}
               type="submit"
               className="mt-4 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
             >
-              Log In
+              {isSubmitting ? "Logging in..." : "Login"}
             </button>
           </form>
         </div>

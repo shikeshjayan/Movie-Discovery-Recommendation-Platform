@@ -81,7 +81,7 @@ const SearchBox = () => {
 
   return (
     <div className="search-box relative flex flex-col items-center w-full max-w-md z-50">
-      <form className="w-full relative">
+      <form className="md:w-full relative">
         <input
           style={{ paddingInline: "2.5rem" }}
           value={inputValue}
@@ -89,7 +89,7 @@ const SearchBox = () => {
           onKeyDown={handleKeyDown}
           type="text"
           placeholder="Search for movies, shows..."
-          className="w-full h-10 px-4 pl-10 border border-blue-100 rounded bg-transparent text-[#0073ff] focus:outline-none focus:ring-1 focus:ring-[#0073ff] placeholder-gray-400 text-sm caret-blue-500"
+          className="w-full h-10 pl-10 border border-blue-100 rounded bg-transparent text-[#0073ff] focus:outline-none focus:ring-1 focus:ring-[#0073ff] placeholder-gray-400 text-sm caret-blue-500"
         />
         {/* Search Icon Positioned Absolute */}
         <span className="absolute left-3 top-2.5 text-gray-400">

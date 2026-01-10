@@ -325,3 +325,31 @@ export const tvReviews = async (id) => {
     return [];
   }
 };
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
+// Fetch for recommendation
+export const recommendations = async (id) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}&language=en-US&page=1`
+    );
+    return response.data.results;
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    return [];
+  }
+};
+// #--------------------------------------------------------------------------------------------------------#
+// #--------------------------------------------------------------------------------------------------------#
+// Fetch for Trending
+export const trendingAll = async (timeWindow = "day") => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/trending/all/${timeWindow}?api_key=${API_KEY}&language=en-US&page=1`
+    );
+    return response.data.results;
+  } catch (error) {
+    console.error("Error fetching trending all:", error);
+    return [];
+  }
+};
