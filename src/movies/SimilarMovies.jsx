@@ -49,7 +49,7 @@ const SimilarMovies = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center">
-        {similar.slice(0, 18).map((movie) => {
+        {similar.slice(0, 12).map((movie) => {
           if (!movie.poster_path) return null;
 
           const isInWatchLater = watchLater.some((m) => m.id === movie.id);

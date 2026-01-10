@@ -107,15 +107,15 @@ const TvShowCard = () => {
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-3">
-              <span className="w-auto px-4 py-2 bg-yellow-500/20 text-yellow-500 font-bold rounded-full">
+              <span className="w-auto px-4 py-2 text-yellow-500 font-bold rounded-full">
                 ★ {shows.vote_average ? shows.vote_average.toFixed(1) : "N/A"}
               </span>
-              <span className="w-auto px-4 py-2 bg-gray-800 text-gray-200 text-sm rounded-full">
+              <span className="w-auto px-4 py-2 text-gray-200 text-sm rounded-full">
                 {shows.first_air_date
                   ? new Date(shows.first_air_date).getFullYear()
                   : "TBA"}
               </span>
-              <span className="w-auto px-4 py-2 bg-gray-800 text-gray-200 text-sm rounded-full">
+              <span className="w-auto px-4 py-2 text-gray-200 text-sm rounded-full">
                 {shows.episode_run_time?.[0]
                   ? `${shows.episode_run_time[0]} min/episode`
                   : "N/A"}
@@ -127,7 +127,7 @@ const TvShowCard = () => {
               {shows.genres?.map((g) => (
                 <span
                   key={g.id}
-                  className="px-4 py-2 bg-gray-800/50 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
+                  className="px-4 py-2 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
                 >
                   {g.name}
                 </span>
@@ -139,8 +139,8 @@ const TvShowCard = () => {
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {shows.spoken_languages.map((lang) => (
                   <span
-                    key={lang.english_name} // ✅ Better unique key
-                    className="px-3 py-1 bg-gray-800/50 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
+                    key={lang.english_name}
+                    className="px-3 py-1 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
                   >
                     {lang.english_name}
                   </span>
@@ -179,7 +179,7 @@ const TvShowCard = () => {
       <ReviewWindow />
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
       <SimilarTvShows />
-      <hr />
+      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
     </>
   );
 };

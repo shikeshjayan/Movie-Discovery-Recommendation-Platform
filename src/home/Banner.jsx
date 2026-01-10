@@ -62,7 +62,7 @@ const Banner = () => {
                     {movie.original_language}
                 </p>
 
-                <p className="text-white md:text-lg font-light leading-relaxed">
+                <p className="text-white text-sm md:text-md lg:text-lg font-light leading-relaxed px-10">
                     {movie.overview}
                 </p>
             </div>

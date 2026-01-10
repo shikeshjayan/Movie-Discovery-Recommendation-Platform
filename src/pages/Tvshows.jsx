@@ -67,7 +67,7 @@ const TVShows = () => {
       <h4 className="popular-movies text-3xl">TV Shows</h4>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4">
-        {tvShows.slice(0, 16).map((show) => {
+        {tvShows.slice(0, 12).map((show) => {
           if (!show.poster_path) return null;
 
           const isInWatchLater = watchLater.some((s) => s.id === show.id);
@@ -129,14 +129,14 @@ const TVShows = () => {
             onClick={() => setPage((prev) => prev - 1)}
             className={`${
               page === 1 ? "opacity-20" : "btn"
-            } w-24 border p-2 cursor-pointer`}
+            } w-24 border bg-blue-600 text-gray-100 hover:bg-blue-500 p-2 cursor-pointer`}
           >
             Previous
           </button>
 
           <button
             onClick={() => setPage((prev) => prev + 1)}
-            className="w-24 border p-2 cursor-pointer"
+            className="w-24 border bg-blue-600 text-gray-100 hover:bg-blue-500 p-2 cursor-pointer"
           >
             Next
           </button>

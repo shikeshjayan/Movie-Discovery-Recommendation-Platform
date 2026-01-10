@@ -47,11 +47,12 @@ const WatchHistory = () => {
       </div>
 
       <div
-        className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-gray-100
-  [&::-webkit-scrollbar-thumb]:bg-gray-300
-  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 hover:dark:[&::-webkit-scrollbar-thumb]:bg-blue-500"
+        className="flex gap-4 overflow-x-auto pb-4 
+      [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
+  [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]
+  dark:[&::-webkit-scrollbar-track]:bg-[#FAFAFA]
+  dark:[&::-webkit-scrollbar-thumb]:bg-[#0064E0] hover:dark:[&::-webkit-scrollbar-thumb]:bg-[#0073ff]"
       >
         {history.map((item) => (
           <Link

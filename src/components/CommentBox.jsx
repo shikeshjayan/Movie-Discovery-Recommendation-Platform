@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import {
   addDoc,
   collection,
@@ -14,6 +14,7 @@ import { db } from "../services/firebase";
 import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "../ui/ConfirmModal";
 import CommentItem from "../ui/CommentItem";
+import { ThemeContext } from "../context/ThemeProvider";
 
 /* ---------------- REDUCER ---------------- */
 const reducer = (state, action) => {
@@ -27,6 +28,7 @@ const reducer = (state, action) => {
 
 const CommentBox = ({ contentId, contentTitle, contentType }) => {
   const { user } = useAuth();
+  const { theme } = useContext(ThemeContext);
 
   const [comments, dispatch] = useReducer(reducer, []);
   const [form, setForm] = useState({ text: "", rating: 0 });
@@ -106,11 +108,19 @@ const CommentBox = ({ contentId, contentTitle, contentType }) => {
   /* ---------------- UI ---------------- */
   return (
     <section className="p-6">
-      <h3 className="text-xl font-semibold mb-6 text-white">User Reviews</h3>
+      <h3
+        className="text-xl font-semibold mb-6"
+        style={{ color: theme === "dark" ? "#FCFCF7" : "#171717" }}
+      >
+        User Reviews
+      </h3>
 
       {/* COMMENT FORM */}
       {user && (
-        <form onSubmit={postComment} className="mb-8 space-y-4 bg-white p-6 text-gray-900 rounded">
+        <form
+          onSubmit={postComment}
+          className="mb-8 space-y-4 bg-white p-6 text-gray-900 rounded"
+        >
           <textarea
             value={form.text}
             onChange={(e) => setForm({ ...form, text: e.target.value })}
@@ -135,7 +145,7 @@ const CommentBox = ({ contentId, contentTitle, contentType }) => {
 
           <button
             disabled={!form.text.trim() || form.rating === 0}
-            className="ml-4 px-6 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
+            className="ml-4 px-6 py-2 bg-[#0064E0] text-[#FCFCF7] hover:bg-[#0073ff] rounded disabled:bg-gray-400"
           >
             Post Comment
           </button>

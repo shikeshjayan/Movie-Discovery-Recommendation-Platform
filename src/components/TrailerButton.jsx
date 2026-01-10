@@ -21,7 +21,7 @@ const TrailerButton = ({ movieKey, tvKey }) => {
       <div className="flex flex-col lg:flex-row justify-center items-center gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="bg-blue-600 text-white px-6 py-2 h-10 rounded mt-4 hover:bg-blue-700 transition"
+          className="bg-[#0064E0] text-white px-6 py-2 h-10 rounded mt-4 hover:bg-[#0073ff] transition"
         >
           ▶ Watch Trailer
         </button>

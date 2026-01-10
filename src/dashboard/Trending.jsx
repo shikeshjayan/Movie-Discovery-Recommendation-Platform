@@ -31,8 +31,8 @@ const Trending = () => {
           onClick={() => setTimeWindow("day")}
           className={`px-4 py-2 mr-2 ${
             timeWindow === "day"
-              ? "bg-blue-600 text-white rounded"
-              : "bg-gray-500"
+              ? "text-blue-600 cursor-pointer"
+              : "text-gray-500 cursor-pointer"
           }`}
         >
           Today
@@ -41,8 +41,8 @@ const Trending = () => {
           onClick={() => setTimeWindow("week")}
           className={`px-4 py-2 ${
             timeWindow === "week"
-              ? "bg-blue-600 text-white rounded"
-              : "bg-gray-500"
+              ? "text-blue-600 cursor-pointer"
+              : "text-gray-500 cursor-pointer"
           }`}
         >
           This Week
@@ -53,7 +53,12 @@ const Trending = () => {
       {loading ? (
         <p>Loading trending items...</p>
       ) : (
-        <div className="flex overflow-x-auto gap-4 pb-4">
+        <div className="flex overflow-x-auto gap-4 pb-4 max-h-100 overflow-y-auto
+  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  dark:[&::-webkit-scrollbar-track]:bg-neutral-100
+  dark:[&::-webkit-scrollbar-thumb]:bg-blue-900">
           {trending.map((item) => {
             const to =
               item.media_type === "movie"

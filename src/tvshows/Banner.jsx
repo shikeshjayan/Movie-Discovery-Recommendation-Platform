@@ -62,7 +62,7 @@ const Banner = () => {
           {shows.original_language}
         </p>
 
-        <p className="text-white md:text-lg font-light leading-relaxed">
+        <p className="text-white sm:text-sm md:text-md lg:text-lg font-light leading-relaxed">
           {shows.overview}
         </p>
       </div>

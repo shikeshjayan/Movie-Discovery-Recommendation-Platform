@@ -1,14 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import SearchBox from "../features/search/SearchBox";
 import { ThemeContext } from "../context/ThemeProvider";
-import { useContext, useEffect, useState, useRef } from "react"; // Added useRef
+import { useContext, useEffect, useState, useRef } from "react";
 import { faMoon, faSun } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ProfileDropdown from "./ProfileDropdown";
 import {
   faBars,
   faXmark,
-  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 
@@ -19,10 +18,8 @@ const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 2. REF: To detect outside clicks
   const profileRef = useRef(null);
 
-  // 3. CLICK OUTSIDE LOGIC
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -33,7 +30,6 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Block scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "auto";
   }, [isMobileMenuOpen]);
@@ -80,7 +76,6 @@ const Header = () => {
           </NavLink>
         </ul>
 
-        {/* Search & Actions */}
         <div className="hidden md:flex items-center gap-6">
           <SearchBox />
 
@@ -91,16 +86,14 @@ const Header = () => {
             />
           </button>
 
-          {/* --- PROFILE DROPDOWN SECTION --- */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2 font-medium rounded px-6 py-2 bg-[#0073ff] text-white hover:text-[#0073ff] hover:bg-white transition"
+              className="flex items-center gap-2 font-medium rounded px-6 py-2 bg-[#0064E0] text-[#FAFAFA] hover:bg-[#0073ff] transition"
             >
               <span>{user ? "Profile" : "Login"}</span>
             </button>
 
-            {/* The Dropdown Component */}
             <ProfileDropdown
               isOpen={isProfileOpen}
               onClose={() => setIsProfileOpen(false)}
@@ -109,7 +102,6 @@ const Header = () => {
           {/* ------------------------------- */}
         </div>
 
-        {/* Mobile Toggle Button (Visible only on mobile) */}
         <div className="md:hidden flex items-center gap-4">
           <button onClick={themeToggle}>
             <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
@@ -123,7 +115,6 @@ const Header = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-10 bg-black/50 backdrop-blur-sm"
@@ -131,7 +122,6 @@ const Header = () => {
         ></div>
       )}
 
-      {/* Mobile Menu Panel */}
       <div
         className={`fixed top-20 left-0 w-full ${
           theme === "dark"
@@ -155,7 +145,7 @@ const Header = () => {
           <button
             onClick={() => {
               setIsMobileMenuOpen(false);
-              navigate(user ? "/profile" : "/signin");
+              navigate(user ? "/dashboard" : "/signin");
             }}
           >
             {user ? "Profile" : "Login"}

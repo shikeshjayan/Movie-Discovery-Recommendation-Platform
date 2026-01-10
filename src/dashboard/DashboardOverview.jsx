@@ -4,6 +4,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { db } from "../services/firebase";
 import { collection, onSnapshot, query } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
 import Recommendations from "./Recommendations";
 import Trending from "./Trending";
 
@@ -13,11 +14,9 @@ const useReviewCount = () => {
 
   useEffect(() => {
     const q = query(collection(db, "comments"));
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setCount(snapshot.size);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -26,14 +25,38 @@ const useReviewCount = () => {
 
 /* ---------------- COMPONENT ---------------- */
 const DashboardOverview = () => {
+  const { user } = useAuth();
   const { wishlistCount } = useWishlist();
   const { historyCount } = useHistory();
   const reviewCount = useReviewCount();
   const { watchLaterCount } = useWatchLater();
+
+  // Helper: convert email like loganlucus@gmail.com → Logan Lucas
+  const formatEmailToName = (email) => {
+    if (!email) return "User";
+
+    const localPart = email.split("@")[0].toLowerCase();
+
+    // Map known email parts to proper names
+    if (localPart === "loganlucus") {
+      return "Logan Lucas";
+    }
+    if (localPart === "george") {
+      return "George";
+    }
+
+    // Fallback: just capitalize first letter (e.g. john → John)
+    return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+  };
+
+  // Use displayName from Firebase Auth, fallback to formatted email name
+  const displayName =
+    user?.displayName || formatEmailToName(user?.email) || "User";
+
   return (
     <section className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-white">
-        Welcome back, Shikesh 👋
+      <h1 className="text-3xl font-bold text-blue-900">
+        Welcome back, {displayName} 👋
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -61,6 +84,7 @@ const DashboardOverview = () => {
           <p className="text-3xl font-bold">{watchLaterCount}</p>
         </div>
       </div>
+
       <hr />
       <Recommendations />
       <Trending />
