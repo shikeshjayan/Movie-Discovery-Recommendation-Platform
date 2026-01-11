@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import { allTvshows, fetchTvShowsByGenre } from "../services/tmdbApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Banner from "../tvshows/Banner";
 import GenreBar from "../tvshows/GenreBar";
 import ImageWithLoader from "../ui/ImageWithLoader";
 import { useHistory } from "../context/HistoryContext";
 import { useAuth } from "../context/AuthContext";
-import { useWatchLater } from "../context/WatchLaterContext"; // Ensure your context file is correct
+import { useWatchLater } from "../context/WatchLaterContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
 
 const TVShows = () => {
   const [tvShows, setTvShows] = useState([]);
   const [page, setPage] = useState(1);
+  const [genre, setGenre] = useState("trending");
+
   const { addToHistory } = useHistory();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
 
@@ -21,7 +26,7 @@ const TVShows = () => {
     if (!user) {
       navigate("/signin", {
         state: {
-          from: `/tvshow/${show.id}`,
+          from: location.pathname,
           message: "Login required to view TV show details",
         },
       });
@@ -39,32 +44,33 @@ const TVShows = () => {
     navigate(`/tvshow/${show.id}`);
   };
 
-  // Fetch TV shows
+  // Fetch TV shows (handles trending + genres + pagination)
   useEffect(() => {
-    allTvshows(page).then(setTvShows);
-  }, [page]);
+    const fetchData = async () => {
+      if (genre === "trending") {
+        const data = await allTvshows(page);
+        setTvShows(data);
+      } else {
+        const data = await fetchTvShowsByGenre(genre, page);
+        setTvShows(data);
+      }
+    };
 
-  const loadTrending = async () => {
-    const data = await allTvshows();
-    setTvShows(data);
-  };
+    fetchData();
+  }, [page, genre]);
 
-  // Genre filter
-  const handleGenreChange = async (id) => {
-    if (id === "trending") {
-      await loadTrending();
-    } else {
-      const data = await fetchTvShowsByGenre(id);
-      setTvShows(data);
-    }
+  // Genre filter (safe, no logic break)
+  const handleGenreChange = (id) => {
+    setGenre(id);
+    setPage(1); // reset page when genre changes
   };
 
   return (
-    <section className="shows-page py-4 flex flex-col gap-4">
+    <section className="py-5 flex flex-col gap-4">
       <Banner />
       <GenreBar setGenre={handleGenreChange} />
 
-      <h4 className="popular-movies text-3xl">TV Shows</h4>
+      <h4 className="text-3xl">TV Shows</h4>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4">
         {tvShows.slice(0, 12).map((show) => {
@@ -78,36 +84,46 @@ const TVShows = () => {
               onClick={() => handleShowClick(show)}
               className="cursor-pointer group relative"
             >
-              <div className="show-case relative">
+              <div className="relative">
                 <ImageWithLoader
                   src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
                   alt={show.original_name || show.original_title}
                   className="w-50 h-75 rounded shadow-md object-cover"
-                  onError={(e) => {
-                    e.target.src = "/Loader.svg";
-                  }}
                 />
 
                 {/* Watch Later Button */}
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent navigating when clicking button
+                    e.stopPropagation();
+
+                    if (!user) {
+                      navigate("/signin", {
+                        state: { message: "Login required" },
+                      });
+                      return;
+                    }
+
                     isInWatchLater
                       ? removeFromWatchLater(show.id)
                       : addToWatchLater(show);
                   }}
                   className="
                     absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
-                 opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer
+                    opacity-100 lg:opacity-0 md:group-hover:opacity-100
+                    transition-opacity duration-300 cursor-pointer
                   "
                 >
-                  {isInWatchLater ? "Remove" : "Watch Later"}
+                  {isInWatchLater ? <FontAwesomeIcon icon={faDeleteLeft} /> : <FontAwesomeIcon icon={faClock} />}
                 </button>
 
-                {/* Rating on hover */}
+                {/* Rating */}
                 <span
-                  className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded
-                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-10"
+                  className="
+                    absolute top-2 right-2 bg-yellow-500 text-black font-bold
+                    text-sm px-3 py-1 rounded z-10
+                    opacity-100 lg:opacity-0 md:group-hover:opacity-100
+                    transition-opacity duration-300
+                  "
                 >
                   ★ {show.vote_average?.toFixed(1) ?? "N/A"}
                 </span>
@@ -128,7 +144,7 @@ const TVShows = () => {
             disabled={page === 1}
             onClick={() => setPage((prev) => prev - 1)}
             className={`${
-              page === 1 ? "opacity-20" : "btn"
+              page === 1 ? "opacity-20" : ""
             } w-24 border bg-blue-600 text-gray-100 hover:bg-blue-500 p-2 cursor-pointer`}
           >
             Previous

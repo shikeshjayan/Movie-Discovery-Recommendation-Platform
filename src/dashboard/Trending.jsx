@@ -58,7 +58,7 @@ const Trending = () => {
   [&::-webkit-scrollbar-track]:bg-gray-100
   [&::-webkit-scrollbar-thumb]:bg-gray-300
   dark:[&::-webkit-scrollbar-track]:bg-neutral-100
-  dark:[&::-webkit-scrollbar-thumb]:bg-blue-900">
+  dark:[&::-webkit-scrollbar-thumb]:bg-[#007BFF]">
           {trending.map((item) => {
             const to =
               item.media_type === "movie"
@@ -82,9 +82,9 @@ const Trending = () => {
                   alt={item.title || item.name || "Unknown"}
                   className="rounded-lg shadow-md w-full h-64 object-cover"
                 />
-                <p className="mt-2 text-sm font-semibold truncate">
+                <h5 className="mt-2 text-sm font-semibold truncate">
                   {item.title || item.name || "Unknown"}
-                </p>
+                </h5>
               </Link>
             );
           })}

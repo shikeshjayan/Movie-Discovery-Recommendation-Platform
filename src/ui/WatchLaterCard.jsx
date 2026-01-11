@@ -25,7 +25,7 @@ const WatchLaterCard = ({ movie, onClick, onRemove }) => {
       </button>
 
       {/* Rating badge */}
-      <span className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 z-10">
+      <span className="absolute top-2 left-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 z-10">
         ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
       </span>
 

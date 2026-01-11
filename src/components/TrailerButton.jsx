@@ -1,9 +1,18 @@
 import { useState } from "react";
 import VideoPlayer from "../ui/VideoPlayer";
 
+/**
+ * TrailerButton Component
+ * Renders a "Watch Trailer" button that opens a modal with a video player.
+ * Shows a disabled "Trailer Not Available" button if no video key is provided.
+ *
+ * @param {string} [movieKey] - YouTube key for movie trailer
+ * @param {string} [tvKey] - YouTube key for TV show trailer
+ */
 const TrailerButton = ({ movieKey, tvKey }) => {
   const [open, setOpen] = useState(false);
 
+  // If neither movieKey nor tvKey is provided, show disabled "Not Available" button
   if (!movieKey && !tvKey) {
     return (
       <button

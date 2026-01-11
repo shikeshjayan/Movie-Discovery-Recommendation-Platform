@@ -30,8 +30,8 @@ const MovieCard = () => {
     : "/fallback-poster.jpg";
 
   return (
-    <>
-      <section className="movie-card relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
+    <section className="py-4">
+      <div className="relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
         <button
           onClick={() => navigate(-1)}
           className="hidden sm:block text-red-600 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
@@ -57,7 +57,7 @@ const MovieCard = () => {
 
           <div className="flex-1 flex flex-col gap-4 space-y-6 text-center md:text-left">
             <div>
-              <div className="flex gap-10 items-center">
+              <div className="flex flex-col md:flex-row gap-10 items-center">
                 <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-gray-400">
                   {movie.title || movie.name}
                 </h1>
@@ -160,20 +160,19 @@ const MovieCard = () => {
             </div>
           </div>
         </div>
-      </section>
+      </div>
       <CastWindow />
-      <hr />
+      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
       <CommentBox
         contentId={String(movie.id)}
         contentTitle={movie.title}
         contentType="movie"
       />
-      <hr className="text-blue-400 mx-4" />
       <ReviewWindow />
-      <hr className="text-blue-400 mx-4" />
+      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
       <SimilarMovies />
       <hr />
-    </>
+    </section>
   );
 };
 

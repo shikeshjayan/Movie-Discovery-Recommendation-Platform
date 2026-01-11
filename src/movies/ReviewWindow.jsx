@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { movieReviews } from "../services/tmdbApi";
 import { useParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
+import { ThemeContext } from "../context/ThemeProvider";
 
 const ReviewWindow = () => {
   const { id } = useParams();
   const [reviews, setReviews] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,7 +55,11 @@ const ReviewWindow = () => {
         return (
           <div
             key={review.id}
-            className="bg-neutral-50 text-gray-950 p-4 shadow rounded m-8"
+            className={`p-4 shadow rounded m-8 overflow-hidden ${
+          theme === "dark"
+            ? "bg-[#1f1c18] text-[#FAFAFA]"
+            : "bg-[#cfd3e0] text-[#312F2C]"
+        }`}
           >
             <div className="flex flex-col lg:flex-row items-center justify-between px-10">
               <img
@@ -64,7 +70,7 @@ const ReviewWindow = () => {
               <h4 className="font-medium">{review.author}</h4>
               <StarRating value={rating ? rating / 2 : 0} />
             </div>
-            <div className="pl-10 pt-4 italic text-sm">
+            <div className="pl-10 pt-4 italic text-sm wrap-break-word">
               {new Date(review.created_at).toLocaleDateString()}
             </div>
             <p className="pl-10 mt-2">{review.content}</p>

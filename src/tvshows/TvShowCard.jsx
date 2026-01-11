@@ -29,11 +29,11 @@ const TvShowCard = () => {
     : "/fallback-poster.jpg";
 
   return (
-    <>
-      <section className="tv_show-card relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
+    <section className="py-4">
+      <div className="relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
         <button
           onClick={() => navigate(-1)}
-          className="hidden sm:block text-red-500 py-2 rounded fixed z-10 right-6 top-16 hover:text-blue-600" // ✅ Fixed top-30 → top-16
+          className="hidden sm:block text-red-500 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600" // ✅ Fixed top-30 → top-16
         >
           Close
         </button>
@@ -56,8 +56,8 @@ const TvShowCard = () => {
 
           <div className="flex-1 flex flex-col gap-4 space-y-6 text-center md:text-left">
             <div>
-              <div className="flex gap-10 items-center">
-                <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+              <div className="flex flex-col md:flex-row gap-10 items-center">
+                <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-gray-400">
                   {shows.title || shows.name}
                 </h1>
                 <button
@@ -163,9 +163,8 @@ const TvShowCard = () => {
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ✅ FIXED: Correct prop names for CommentBox */}
       <CastWindow />
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
 
@@ -177,10 +176,9 @@ const TvShowCard = () => {
 
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
       <ReviewWindow />
-      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
       <SimilarTvShows />
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
-    </>
+    </section>
   );
 };
 

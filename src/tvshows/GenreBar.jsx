@@ -9,7 +9,7 @@ const GenreBar = ({ setGenre }) => {
     { name: "Mystery", id: 9648 },
   ];
   return (
-    <div className="genre bg-[#0064E0] w-full min-h-16 flex flex-wrap gap-8 justify-around items-center italic">
+    <div className="px-4 py-2 bg-[#0064E0] w-full min-h-16 flex flex-wrap gap-8 justify-around items-center italic">
       {genres.map((item) => (
         <span
           key={item.id}

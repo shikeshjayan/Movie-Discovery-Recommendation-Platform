@@ -8,16 +8,13 @@ import {
   GoogleAuthProvider,
   reauthenticateWithPopup,
 } from "firebase/auth";
-import { db, storage } from "../services/firebase";
+import { db } from "../services/firebase";
 import { doc, setDoc } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 const Homepage = () => {
   const { user } = useAuth();
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -43,49 +40,6 @@ const Homepage = () => {
     } catch (err) {
       console.error(err);
       showModal("Failed to update username: " + err.message);
-    }
-  };
-
-  // ---------- Profile Image Change ----------
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const storageRef = ref(storage, `avatars/${user.uid}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error(error);
-          showModal("Upload failed: " + error.message);
-          setUploading(false);
-        },
-        async () => {
-          const url = await getDownloadURL(uploadTask.snapshot.ref);
-          await updateProfile(user, { photoURL: url });
-          await setDoc(
-            doc(db, "users", user.uid),
-            { photoURL: url },
-            { merge: true }
-          );
-          showModal("Profile image updated!");
-          setUploading(false);
-        }
-      );
-    } catch (err) {
-      console.error(err);
-      showModal("Failed to update image: " + err.message);
-      setUploading(false);
     }
   };
 
@@ -142,15 +96,32 @@ const Homepage = () => {
 
   const closeModal = () => setModalOpen(false);
 
+  // ---------- Helper for Initial Avatar ----------
+  const getInitial = (name, email) => {
+    if (name && name.trim().length > 0) {
+      return name.trim().charAt(0).toUpperCase();
+    }
+    return email ? email.charAt(0).toUpperCase() : "U";
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-8">
       {/* USER CARD */}
       <div className="flex flex-col sm:flex-row items-center gap-6 bg-gray-100 p-6 rounded shadow-lg hover:shadow-lg">
-        <img
-          src={user?.photoURL || "/default-avatar.png"}
-          alt="Profile"
-          className="w-24 h-24 rounded-full border-4 border-blue-900 object-cover"
-        />
+        {user?.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt="Profile"
+            className="w-24 h-24 rounded-full border-4 border-blue-900 object-cover"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full border-4 border-blue-900 bg-blue-200 flex items-center justify-center">
+            <span className="text-2xl font-bold text-blue-900">
+              {getInitial(user?.displayName, user?.email)}
+            </span>
+          </div>
+        )}
+
         <div className="text-center sm:text-left mt-4 sm:mt-0">
           <h2 className="text-2xl font-bold text-blue-900">
             {user?.displayName || "User"}
@@ -160,30 +131,7 @@ const Homepage = () => {
       </div>
 
       {/* PROFILE SETTINGS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* CHANGE IMAGE */}
-        <div className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200">
-          <h3 className="text-lg font-semibold mb-4 text-blue-900">
-            Change Image
-          </h3>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="text-sm w-full file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-gray-100 file:text-blue-900
-              hover:file:bg-blue-700
-              cursor-pointer"
-          />
-          {uploading && (
-            <p className="text-gray-400 mt-2 text-sm">
-              Uploading... {uploadProgress.toFixed(0)}%
-            </p>
-          )}
-        </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* CHANGE USERNAME */}
         <div className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200">
           <h3 className="text-lg font-semibold mb-4 text-blue-900">

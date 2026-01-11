@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { doc, updateDoc, Timestamp } from "firebase/firestore";
 import { db } from "../services/firebase";
 import StarRating from "../components/StarRating";
+import { ThemeContext } from "../context/ThemeProvider";
 
 const CommentItem = ({ comment, user, onDelete }) => {
-  console.log("AUTH UID:", user?.uid);
-  console.log("COMMENT DATA:", comment);
+  const { theme } = useContext(ThemeContext);
 
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -33,39 +33,45 @@ const CommentItem = ({ comment, user, onDelete }) => {
   };
 
   return (
-    <div className="p-6 bg-white text-gray-900 rounded mb-6 shadow border">
+    <div
+      className={`p-4 rounded mx-6 shadow ${
+        theme === "dark"
+          ? "bg-[#1f1c18] text-[#FAFAFA]"
+          : "bg-[#cfd3e0] text-[#312F2C]"
+      }`}
+    >
       {!editing ? (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-2 mb-4 lg:flex-row lg:justify-between lg:items-center lg:gap-0">
+            {/* Avatar */}
+            <div className="md:pl-10 flex justify-center lg:justify-start items-center gap-3">
               <img
                 src="/avatar.png"
                 alt=""
                 className="w-10 h-10 rounded-full border"
               />
-              <span className="font-bold">{comment.username}</span>
             </div>
-            <div className="hidden md:block">
+
+            {/* Username */}
+            <h4 className="font-medium">{comment.username}</h4>
+
+            {/* Star Rating */}
+            <div>
               <StarRating value={comment.rating} />
             </div>
           </div>
-          <div className="block md:hidden my-4">
-              <StarRating value={comment.rating} />
-            </div>
 
-          <p className="mb-4">{comment.text}</p>
+          <span className="pl-10 pt-4 italic text-sm wrap-break-word">
+            {comment.createdAt?.seconds
+              ? new Date(comment.createdAt.seconds * 1000).toLocaleDateString()
+              : "Just now"}
+            {comment.updatedAt?.seconds > comment.createdAt?.seconds &&
+              " (edited)"}
+          </span>
 
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>
-              {comment.createdAt?.seconds
-                ? new Date(
-                    comment.createdAt.seconds * 1000
-                  ).toLocaleDateString()
-                : "Just now"}
-              {comment.updatedAt?.seconds > comment.createdAt?.seconds &&
-                " (edited)"}
-            </span>
+          <p className="pl-10">{comment.text}</p>
 
+          <div className="pl-10 flex justify-between text-sm text-gray-500">
             {user?.uid === comment.userId ||
               (comment.uid && (
                 <div className="flex gap-4">

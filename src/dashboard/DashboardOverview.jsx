@@ -55,31 +55,31 @@ const DashboardOverview = () => {
 
   return (
     <section className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-blue-900">
+      <h1 className="text-3xl font-bold text-[#007BFF]">
         Welcome back, {displayName} 👋
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {/* Wishlist */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-blue-500 text-white hover:shadow-lg transition">
+        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#007BFF] text-[#1A1A1A] hover:shadow-lg transition">
           <p className="text-sm opacity-90">Wishlist Items</p>
           <p className="text-3xl font-bold">{wishlistCount}</p>
         </div>
 
         {/* History */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-green-500 text-white hover:shadow-lg transition">
+        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#E10098] text-[#1A1A1A] hover:shadow-lg transition">
           <p className="text-sm opacity-90">History Items</p>
           <p className="text-3xl font-bold">{historyCount}</p>
         </div>
 
         {/* Reviews */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-purple-500 text-white hover:shadow-lg transition">
+        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#FFD300] text-[#1A1A1A] hover:shadow-lg transition">
           <p className="text-sm opacity-90">Reviews</p>
           <p className="text-3xl font-bold">{reviewCount}</p>
         </div>
 
         {/* Watchlater */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-purple-500 text-white hover:shadow-lg transition">
+        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#FF7A00] text-[#1A1A1A] hover:shadow-lg transition">
           <p className="text-sm opacity-90">Watchlater</p>
           <p className="text-3xl font-bold">{watchLaterCount}</p>
         </div>

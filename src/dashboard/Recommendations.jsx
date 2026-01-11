@@ -64,7 +64,7 @@ const Recommendations = () => {
             {[...Array(5)].map((_, i) => (
               <div
                 key={i}
-                className="min-w-40 h-60 bg-gray-300 rounded-lg animate-pulse"
+                className="min-w-40 h-60 bg-gray-800 rounded animate-pulse"
               />
             ))}
           </div>
@@ -83,7 +83,7 @@ const Recommendations = () => {
   [&::-webkit-scrollbar-track]:bg-gray-100
   [&::-webkit-scrollbar-thumb]:bg-gray-300
   dark:[&::-webkit-scrollbar-track]:bg-neutral-100
-  dark:[&::-webkit-scrollbar-thumb]:bg-blue-900"
+  dark:[&::-webkit-scrollbar-thumb]:bg-[#007BFF]"
           >
             {recommendedMovies.map((movie) => (
               <Link
@@ -101,7 +101,7 @@ const Recommendations = () => {
                   className="rounded-lg shadow-md w-full"
                   loading="lazy"
                 />
-                <p className="mt-2 text-sm font-semibold">{movie.title}</p>
+                <h5 className="mt-2 text-sm font-semibold">{movie.title}</h5>
               </Link>
             ))}
           </div>

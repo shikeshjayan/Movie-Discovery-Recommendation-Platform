@@ -5,21 +5,32 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { faMoon, faSun } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ProfileDropdown from "./ProfileDropdown";
-import {
-  faBars,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 
+/**
+ * Header Component
+ * Renders the main navigation bar with:
+ * - Logo (RMDB)
+ * - Desktop navigation links (Home, Movies, TV Shows)
+ * - SearchBox, theme toggle, and profile/login button
+ * - Mobile menu (hamburger menu + overlay)
+ */
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, themeToggle } = useContext(ThemeContext);
+
+  // State for dropdowns and mobile menu
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Ref to detect clicks outside the profile dropdown
   const profileRef = useRef(null);
 
+  /**
+   * Close profile dropdown when clicking outside
+   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -30,13 +41,16 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Prevent body scroll when mobile menu is open
+   */
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "auto";
   }, [isMobileMenuOpen]);
 
   return (
     <header>
-      {/* Desktop View */}
+      {/* Desktop Navigation */}
       <nav
         className={`fixed top-0 w-full h-20 flex justify-between items-center z-20 py-4 px-4 shadow-md transition-colors duration-300 ${
           theme === "dark"
@@ -44,12 +58,16 @@ const Header = () => {
             : "bg-[#ECF0FF] text-[#312F2C]"
         }`}
       >
-        <div className="text-3xl font-bold text-[#0073ff] animate-pulse cursor-pointer">
+        {/* Logo */}
+        <div
+          className="fadeIn text-3xl font-bold text-[#0073ff] cursor-pointer"
+          onClick={() => navigate("/home")}
+        >
           RMDB
         </div>
 
-        {/* Desktop Links */}
-        <ul className="hidden md:flex gap-6 uppercase font-medium">
+        {/* Desktop Navigation Links */}
+        <ul className="topDown hidden md:flex gap-6 uppercase font-medium">
           <NavLink
             to="/home"
             className={({ isActive }) =>
@@ -76,17 +94,20 @@ const Header = () => {
           </NavLink>
         </ul>
 
-        <div className="hidden md:flex items-center gap-6">
+        {/* Right Side: Search, Theme Toggle, Profile/Login */}
+        <div className="topDown hidden md:flex items-center gap-6">
           <SearchBox />
 
-          <button onClick={themeToggle} className="text-xl">
+          {/* Theme Toggle Button */}
+          <button onClick={themeToggle} className="topDown text-xl">
             <FontAwesomeIcon
               icon={theme === "dark" ? faSun : faMoon}
-              color={theme === "dark" ? "#ffff00" : "#000"}
+              color={theme === "dark" ? "#ffffff" : "#000"}
             />
           </button>
 
-          <div className="relative" ref={profileRef}>
+          {/* Profile/Login Button + Dropdown */}
+          <div className="topDown relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center gap-2 font-medium rounded px-6 py-2 bg-[#0064E0] text-[#FAFAFA] hover:bg-[#0073ff] transition"
@@ -99,9 +120,9 @@ const Header = () => {
               onClose={() => setIsProfileOpen(false)}
             />
           </div>
-          {/* ------------------------------- */}
         </div>
 
+        {/* Mobile Menu Toggle Buttons */}
         <div className="md:hidden flex items-center gap-4">
           <button onClick={themeToggle}>
             <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
@@ -115,6 +136,7 @@ const Header = () => {
         </div>
       </nav>
 
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-10 bg-black/50 backdrop-blur-sm"
@@ -122,6 +144,7 @@ const Header = () => {
         ></div>
       )}
 
+      {/* Mobile Menu Panel */}
       <div
         className={`fixed top-20 left-0 w-full ${
           theme === "dark"

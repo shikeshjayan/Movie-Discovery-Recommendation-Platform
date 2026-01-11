@@ -256,11 +256,16 @@ export const fetchMoviesByGenre = async (genre_id) => {
 // #--------------------------------------------------------------------------------------------------------#
 // #--------------------------------------------------------------------------------------------------------#
 // Fetch TV Shows Genre
-export const fetchTvShowsByGenre = async (genre_id) => {
+export const fetchTvShowsByGenre = async (genre_id, page = 1) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=${genre_id}`
-    );
+    const response = await axios.get(`${BASE_URL}/discover/tv`, {
+      params: {
+        api_key: API_KEY,
+        with_genres: genre_id,
+        page,
+      },
+    });
+
     return response.data.results;
   } catch (error) {
     console.error("Error fetching tvshows genre:", error);

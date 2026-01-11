@@ -3,6 +3,8 @@ import { similarMovies } from "../services/tmdbApi";
 import { useEffect, useState } from "react";
 import { useHistory } from "../context/HistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
+import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const SimilarMovies = () => {
   const { id } = useParams();
@@ -38,7 +40,7 @@ const SimilarMovies = () => {
 
   return (
     <article className="flex flex-col gap-4">
-      <h4 className="popular-movies text-3xl">You might also like</h4>
+      <h4 className="text-3xl">You might also like</h4>
 
       {similarLoading && (
         <p className="text-gray-400 mt-6">Loading similar movies...</p>
@@ -69,7 +71,7 @@ const SimilarMovies = () => {
                 to={`/movie/${movie.id}`}
                 className="no-underline block cursor-pointer"
               >
-                <div className="movie-case">
+                <div>
                   <img
                     src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
                     alt={movie.title}
@@ -90,12 +92,18 @@ const SimilarMovies = () => {
                 className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
               >
-                {isInWatchLater ? "Remove" : "Watch Later"}
+                {isInWatchLater ? (
+                  <FontAwesomeIcon icon={faDeleteLeft} />
+                ) : (
+                  <FontAwesomeIcon icon={faClock} />
+                )}
               </button>
 
               {/* Rating badge */}
-              <span className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded
-                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+              <span
+                className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded
+                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
+              >
                 ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
               </span>
             </div>

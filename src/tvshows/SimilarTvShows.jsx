@@ -3,6 +3,8 @@ import { similarShows } from "../services/tmdbApi";
 import { useEffect, useState } from "react";
 import { useHistory } from "../context/HistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
+import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const SimilarTvShows = () => {
   const { id } = useParams();
@@ -36,7 +38,7 @@ const SimilarTvShows = () => {
 
   return (
     <article className="flex flex-col gap-4">
-      <h4 className="popular-shows text-3xl">Similar TV Shows</h4>
+      <h4 className="popular-shows text-3xl">You might also like</h4>
 
       {similarLoading && (
         <p className="text-gray-400 mt-6">Loading similar TV Shows...</p>
@@ -67,7 +69,7 @@ const SimilarTvShows = () => {
                 to={`/tvshow/${show.id}`}
                 className="no-underline block cursor-pointer"
               >
-                <div className="movie-case">
+                <div>
                   <img
                     src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
                     alt={show.name || show.title}
@@ -90,7 +92,7 @@ const SimilarTvShows = () => {
                 className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
               >
-                {isInWatchLater ? "Remove" : "Watch Later"}
+                {isInWatchLater ? <FontAwesomeIcon icon={faDeleteLeft} /> : <FontAwesomeIcon icon={faClock} />}
               </button>
 
               {/* Rating badge */}

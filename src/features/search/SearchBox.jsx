@@ -1,12 +1,15 @@
-import { useContext, useEffect, useRef, useReducer } from "react";
+import { useEffect, useRef, useReducer } from "react";
 import { fetchSearch } from "../../services/tmdbApi";
 import SearchResult from "./SearchResult";
-// import { faMicrophone } from "@fortawesome/free-solid-svg-icons";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ThemeContext } from "../../context/ThemeProvider";
-
 /* -------------------- Reducer -------------------- */
 
+/**
+ * Initial state for the search box
+ * @property {string} inputValue - Current value in the input field
+ * @property {Array} movies - List of search results
+ * @property {number} activeIndex - Index of the currently highlighted result
+ * @property {boolean} showResults - Whether the results dropdown is visible
+ */
 const initialState = {
   inputValue: "",
   movies: [],
@@ -14,6 +17,12 @@ const initialState = {
   showResults: false,
 };
 
+/**
+ * Reducer function to manage search box state
+ * @param {Object} state - Current state
+ * @param {Object} action - Action object with type and payload
+ * @returns {Object} New state
+ */
 function reducer(state, action) {
   switch (action.type) {
     case "SET_INPUT":
@@ -54,15 +63,23 @@ function reducer(state, action) {
 
 /* -------------------- Component -------------------- */
 
+/**
+ * SearchBox Component
+ * Renders a search input with autocomplete dropdown.
+ * Supports keyboard navigation (arrow keys, Enter, Escape) and click-to-navigate.
+ */
 const SearchBox = () => {
-  const { theme } = useContext(ThemeContext);
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const { inputValue, movies, activeIndex, showResults } = state;
 
-  // 🔒 Prevent async race condition
+  // Ref to track the latest request ID (prevents race conditions)
   const requestIdRef = useRef(0);
 
+  /**
+   * Handles input change and triggers search
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
   const handleInputChange = async (e) => {
     const val = e.target.value;
     dispatch({ type: "SET_INPUT", payload: val });
@@ -73,6 +90,7 @@ const SearchBox = () => {
       try {
         const data = await fetchSearch(val);
 
+        // Only update results if this is the latest request
         if (currentRequestId === requestIdRef.current) {
           dispatch({
             type: "SET_RESULTS",
@@ -87,10 +105,17 @@ const SearchBox = () => {
     }
   };
 
+  /**
+   * Clears the search input and hides results
+   */
   const clearSearch = () => {
     dispatch({ type: "CLEAR" });
   };
 
+  /**
+   * Handles keyboard navigation and selection
+   * @param {React.KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
     if (!showResults || movies.length === 0) return;
 
@@ -134,12 +159,13 @@ const SearchBox = () => {
     }
   };
 
+  // Reset activeIndex whenever movies list changes
   useEffect(() => {
     dispatch({ type: "SET_ACTIVE_INDEX", payload: -1 });
   }, [movies]);
 
   return (
-    <div className="search-box relative flex flex-col items-center w-full max-w-md z-50">
+    <div className="w-200 relative flex flex-col items-center max-w-md z-50">
       <form className="md:w-full relative" onSubmit={(e) => e.preventDefault()}>
         <input
           style={{ paddingInline: "2.5rem" }}
@@ -168,13 +194,6 @@ const SearchBox = () => {
             />
           </svg>
         </span>
-
-        {/* <span className="absolute right-3 top-2.5 cursor-pointer">
-          <FontAwesomeIcon
-            icon={faMicrophone}
-            style={{ color: theme === "light" ? "#000" : "#fff" }}
-          />
-        </span> */}
       </form>
 
       {showResults && (

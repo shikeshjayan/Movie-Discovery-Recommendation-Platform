@@ -1,18 +1,36 @@
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { ThemeContext } from "../../context/ThemeProvider";
 
+/**
+ * SearchResult Component
+ * Renders a dropdown list of search results with keyboard navigation support.
+ * Each item is clickable and navigates to the movie/TV show detail page.
+ *
+ * @param {Array} movies - List of movie/TV show objects from TMDB
+ * @param {number} activeIndex - Index of the currently highlighted item
+ * @param {Function} setActiveIndex - Function to update the active index
+ * @param {Function} onClose - Function to close the search dropdown
+ */
 const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
   const navigate = useNavigate();
   const itemRefs = useRef([]);
+  const { theme } = useContext(ThemeContext);
 
+  // Scroll the active item into view when activeIndex changes
   useEffect(() => {
-    if (activeIndex >= 0) {
-      itemRefs.current[activeIndex]?.scrollIntoView({
+    if (activeIndex >= 0 && itemRefs.current[activeIndex]) {
+      itemRefs.current[activeIndex].scrollIntoView({
         block: "nearest",
       });
     }
   }, [activeIndex]);
 
+  /**
+   * Handles click on a search result item
+   * @param {number} id - Movie/TV show ID
+   * @param {string} type - Media type ("movie" or "tv")
+   */
   const handleItemClick = (id, type) => {
     const route = type === "tv" ? `/tvshow/${id}` : `/movie/${id}`;
     navigate(route);
@@ -20,18 +38,27 @@ const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
   };
 
   return (
-    <div className="absolute top-full mt-2 left-0 w-full bg-black/70 backdrop-blur-lg border border-gray-700 rounded-md shadow-2xl max-h-80 overflow-y-auto">
+    <div
+      className={`absolute top-full mt-5 left-1/2 transform -translate-x-1/2 sm:w-[60vw] max-w-md sm:max-w-lg backdrop-blur-lg rounded-b shadow-2xl max-h-80 overflow-y-auto
+        [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
+        [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]
+        dark:[&::-webkit-scrollbar-track]:bg-[#FAFAFA]
+        dark:[&::-webkit-scrollbar-thumb]:bg-[#0064E0] hover:dark:[&::-webkit-scrollbar-thumb]:bg-[#0073ff]
+        ${theme === "dark" ? "bg-black/70" : "bg-white/70"}
+      `}
+    >
       {movies && movies.length > 0 ? (
         movies.map((item, index) => (
           <div
             key={item.id}
             ref={(el) => (itemRefs.current[index] = el)}
-            onmouseenter={() => setActiveIndex(index)}
+            onMouseEnter={() => setActiveIndex(index)}
             onClick={() => handleItemClick(item.id, item.media_type)}
             className={`
-      flex items-center gap-3 p-3 cursor-pointer transition-colors border-b border-gray-800 last:border-0
-      ${index === activeIndex ? "bg-blue-500/20" : "hover:bg-gray-800"}
-    `}
+              flex items-center gap-3 p-3 cursor-pointer transition-colors border-b border-gray-800 last:border-0
+              ${index === activeIndex ? "bg-blue-100/20" : "hover:bg-blue-500"}
+            `}
           >
             <img
               src={
@@ -45,17 +72,29 @@ const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
 
             {/* Text Info */}
             <div className="flex-1 text-left">
-              <h4 className="text-sm font-semibold text-gray-100 line-clamp-1">
+              <h4
+                className={`text-sm font-semibold line-clamp-1
+                  ${theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"}
+                `}
+              >
                 {item.title || item.name}
               </h4>
-              <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                <span>
+              <div
+                className={`flex items-center gap-2 text-xs text-gray-400 mt-1
+                  ${theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"}
+                `}
+              >
+                <span
+                  className={`${
+                    theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"
+                  }`}
+                >
                   {item.release_date
                     ? item.release_date.substring(0, 4)
                     : "N/A"}
                 </span>
                 <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <span className="uppercase border border-gray-600 px-1 rounded text-[10px]">
+                <span className="uppercase px-1 rounded text-[10px]">
                   {item.media_type === "tv" ? "TV" : "Movie"}
                 </span>
               </div>

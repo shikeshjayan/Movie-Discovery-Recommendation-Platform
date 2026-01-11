@@ -33,26 +33,31 @@ const router = createBrowserRouter([
       { path: "tvshows", element: <Tvshows /> },
       { path: "signin", element: <Signin /> },
       { path: "signup", element: <Signup /> },
-
       {
         element: <ProtectedRoute />,
         children: [
           { path: "movie/:id", element: <MovieCard /> },
           { path: "tvshow/:id", element: <TvShowCard /> },
-          // ✅ Protected Dashboard layout
-          {
-            path: "dashboard",
-            element: <DashboardLayout />,
-            errorElement: <NotFound />,
-            children: [
-              { index: true, element: <DashboardOverview /> },
-              { path: "home", element: <Homepage /> },
-              { path: "history", element: <History /> },
-              { path: "watchlater", element: <WatchLater /> },
-              { path: "wishlist", element: <Wishlist /> },
-              { path: "myreviews", element: <Myreviews /> },
-            ],
-          },
+        ],
+      },
+    ],
+  },
+
+  // ✅ Dashboard outside RootLayout
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "dashboard",
+        element: <DashboardLayout />,
+        errorElement: <NotFound />,
+        children: [
+          { index: true, element: <DashboardOverview /> },
+          { path: "home", element: <Homepage /> },
+          { path: "history", element: <History /> },
+          { path: "watchlater", element: <WatchLater /> },
+          { path: "wishlist", element: <Wishlist /> },
+          { path: "myreviews", element: <Myreviews /> },
         ],
       },
     ],

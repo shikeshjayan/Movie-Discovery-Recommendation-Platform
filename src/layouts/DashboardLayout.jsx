@@ -9,8 +9,8 @@ const DashboardLayout = () => {
     <div
       className={`flex flex-col md:flex-row md:h-screen ${
         theme === "dark"
-          ? "bg-[#312F2C] text-[#FAFAFA]"
-          : "bg-[#ECF0FF] text-[#312F2C]"
+          ? "bg-blue-950 text-[#EBEBEB]"
+          : "bg-blue-100 text-[#10367D]"
       }`}
     >
       {/* Mobile Top Nav */}

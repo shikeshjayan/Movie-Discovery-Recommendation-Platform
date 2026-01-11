@@ -37,7 +37,7 @@ const Banner = () => {
                 key={movie.id}
                 src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
                 alt={movie.title}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover fadeIn"
             />
 
             {/* Black fog */}

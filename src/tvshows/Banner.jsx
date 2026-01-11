@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { airingShows } from "../services/tmdbApi";
-import ImageWithLoader from "../ui/ImageWithLoader"
+import ImageWithLoader from "../ui/ImageWithLoader";
 
 const Banner = () => {
   const [airingShowsList, setAiringShowsList] = useState([]);
@@ -10,7 +10,6 @@ const Banner = () => {
   useEffect(() => {
     airingShows().then(setAiringShowsList);
   }, []);
-
 
   useEffect(() => {
     if (airingShowsList.length === 0) return;
@@ -45,8 +44,8 @@ const Banner = () => {
         className="absolute bottom-0 left-0 w-full h-[45%]
              bg-black/40 backdrop-blur-lg
              mask-[linear-gradient(to_top,black_70%,transparent_100%)]
-             [-webkit-mask-image:linear-gradient(to_top,black_70%,transparent_100%)]">
-      </div>
+             [-webkit-mask-image:linear-gradient(to_top,black_70%,transparent_100%)]"
+      ></div>
 
       {/* Text */}
       <div className="relative z-10 bottom-[50%] left-6 max-w-3xl">

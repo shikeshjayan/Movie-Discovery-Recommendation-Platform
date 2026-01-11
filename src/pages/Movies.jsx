@@ -7,6 +7,9 @@ import ImageWithLoader from "../ui/ImageWithLoader";
 import { useHistory } from "../context/HistoryContext";
 import { useAuth } from "../context/AuthContext";
 import { useWatchLater } from "../context/WatchLaterContext";
+import { faClock } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
 
 const Movies = () => {
   const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
@@ -58,11 +61,11 @@ const Movies = () => {
   };
 
   return (
-    <section className="home-page py-4 flex flex-col gap-4">
+    <section className="py-5 flex flex-col gap-4">
       <Banner />
       <GenreBar setGenre={handleGenreChange} />
 
-      <h4 className="popular-movies text-3xl">Movies</h4>
+      <h4 className="text-3xl">Movies</h4>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4">
         {movies.slice(0, 12).map((movie) => {
@@ -76,7 +79,7 @@ const Movies = () => {
               onClick={() => handleMovieClick(movie)}
               className="cursor-pointer"
             >
-              <div className="movie-case relative group">
+              <div className="relative group">
                 <ImageWithLoader
                   src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
                   alt={movie.original_title || movie.name}
@@ -97,7 +100,7 @@ const Movies = () => {
                   className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
                 >
-                  {isInWatchLater ? "Remove" : "Watch Later"}
+                  {isInWatchLater ? <FontAwesomeIcon icon={faDeleteLeft} /> : <FontAwesomeIcon icon={faClock} />}
                 </button>
 
                 {/* Rating on hover */}

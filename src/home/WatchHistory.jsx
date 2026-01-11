@@ -27,7 +27,7 @@ const WatchHistory = () => {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h4 className="popular-movies md:text-3xl">Recently Watched</h4>
+        <h4 className="my-2 pl-4 md:text-3xl">Recently Watched</h4>
 
         <button
           onClick={openClear}
@@ -60,7 +60,7 @@ const WatchHistory = () => {
             to={`/movie/${item.id}`}
             className="group relative no-underline shrink-0 snap-start max-w-50"
           >
-            <div className="movie-case relative w-50">
+            <div className="relative w-50">
               <img
                 src={`https://image.tmdb.org/t/p/w342${item.poster_path}`}
                 alt={item.title}
@@ -89,7 +89,7 @@ const WatchHistory = () => {
               </button>
             </div>
 
-            <h5 className="mt-2 text-center text-sm ">
+            <h5 className="mt-2 text-center text-sm">
               {item.name || item.original_name || item.title}
             </h5>
           </Link>
