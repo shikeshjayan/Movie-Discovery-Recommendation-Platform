@@ -197,7 +197,11 @@ const Signin = () => {
                   className="absolute right-3 text-[#312F2C] focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+                  {showPassword ? (
+                    <img src="/open-eye.png" alt="" />
+                  ) : (
+                    <img src="/closed-eye.png" alt="" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -223,16 +227,7 @@ const Signin = () => {
             {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center mt-2">
               <div className="flex items-center gap-2">
-                <motion.input
-                  whileHover={{
-                    borderColor: "#0073ff",
-                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-                  }}
-                  whileFocus={{
-                    scale: 1.03,
-                    letterSpacing: "-0.5px",
-                  }}
-                  whileTap={{ scale: 0.98 }}
+                <input
                   type="checkbox"
                   id="rememberMe"
                   checked={rememberMe}

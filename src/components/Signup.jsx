@@ -6,11 +6,12 @@ import { auth, db } from "../services/firebase";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
-import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-regular-svg-icons";
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { ThemeContext } from "../context/ThemeProvider";
 import BlurImage from "../ui/BlurImage";
 import { motion } from "framer-motion";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 /**
  * Signup Component
  * ----------------
@@ -174,7 +175,7 @@ const Signup = () => {
           : "bg-[#ECF0FF] text-[#312F2C]"
       }`}
     >
-      <div className="bg-[#ECF0FF] w-full max-w-4xl min-h-150 flex rounded-lg shadow-lg overflow-hidden">
+      <div className="bg-[#ECF0FF] w-full max-w-4xl min-h-180 flex rounded-lg shadow-lg overflow-hidden">
         {/* Left side - Cover image */}
         <div className="hidden md:block w-1/2 relative bg-gray-200">
           <BlurImage
@@ -199,16 +200,7 @@ const Signup = () => {
               <label htmlFor="username" className="text-blue-500 font-medium">
                 Username
               </label>
-              <motion.input
-                whileHover={{
-                  borderColor: "#0073ff",
-                  boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-                }}
-                whileFocus={{
-                  scale: 1.03,
-                  letterSpacing: "-0.5px",
-                }}
-                whileTap={{ scale: 0.98 }}
+              <input
                 id="username"
                 type="text"
                 className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -228,16 +220,7 @@ const Signup = () => {
               <label htmlFor="email" className="text-blue-500 font-medium">
                 Email
               </label>
-              <motion.input
-                whileHover={{
-                  borderColor: "#0073ff",
-                  boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-                }}
-                whileFocus={{
-                  scale: 1.03,
-                  letterSpacing: "-0.5px",
-                }}
-                whileTap={{ scale: 0.98 }}
+              <input
                 id="email"
                 type="email"
                 className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -258,16 +241,7 @@ const Signup = () => {
                 Password
               </label>
               <div className="relative flex items-center">
-                <motion.input
-                  whileHover={{
-                    borderColor: "#0073ff",
-                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-                  }}
-                  whileFocus={{
-                    scale: 1.03,
-                    letterSpacing: "-0.5px",
-                  }}
-                  whileTap={{ scale: 0.98 }}
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -281,7 +255,11 @@ const Signup = () => {
                   className="absolute right-3 focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+                  {showPassword ? (
+                    <img src="/open-eye.png" alt="" />
+                  ) : (
+                    <img src="/closed-eye.png" alt="" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -313,16 +291,7 @@ const Signup = () => {
                 Confirm Password
               </label>
               <div className="relative flex items-center">
-                <motion.input
-                  whileHover={{
-                    borderColor: "#0073ff",
-                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-                  }}
-                  whileFocus={{
-                    scale: 1.03,
-                    letterSpacing: "-0.5px",
-                  }}
-                  whileTap={{ scale: 0.98 }}
+                <input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -340,9 +309,11 @@ const Signup = () => {
                       : "Show confirm password"
                   }
                 >
-                  <FontAwesomeIcon
-                    icon={showConfirmPassword ? faEye : faEyeSlash}
-                  />
+                  {showConfirmPassword ? (
+                    <img src="/open-eye.png" alt="" />
+                  ) : (
+                    <img src="/closed-eye.png" alt="" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
