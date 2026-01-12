@@ -1,6 +1,7 @@
 import { useEffect, useRef, useReducer } from "react";
 import { fetchSearch } from "../../services/tmdbApi";
 import SearchResult from "./SearchResult";
+import { motion } from "framer-motion";
 /* -------------------- Reducer -------------------- */
 
 /**
@@ -165,9 +166,28 @@ const SearchBox = () => {
   }, [movies]);
 
   return (
-    <div className="w-200 relative flex flex-col items-center max-w-md z-50">
+    <motion.div
+      initial={{ scale: 0.2, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      whileFocus={{
+        scale: 1.02,
+        boxShadow: "0 10px 30px rgba(0,116,224,0.3)",
+        border: "2px solid #0073ff",
+      }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="w-200 relative flex flex-col items-center max-w-md z-50"
+    >
       <form className="md:w-full relative" onSubmit={(e) => e.preventDefault()}>
-        <input
+        <motion.input
+          whileHover={{
+            borderColor: "#0073ff",
+            boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+          }}
+          whileFocus={{
+            scale: 1.03,
+            letterSpacing: "-0.5px",
+          }}
+          whileTap={{ scale: 0.98 }}
           style={{ paddingInline: "2.5rem" }}
           value={inputValue}
           onChange={handleInputChange}
@@ -206,7 +226,7 @@ const SearchBox = () => {
           onClose={clearSearch}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

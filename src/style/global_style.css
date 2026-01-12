@@ -1,63 +1,101 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   CUSTOM CSS VARIABLES - Typography System
+   ========================================================================== */
 :root {
     --primary-font: "Montserrat", sans-serif;
+    /* Headings & Titles */
     --body-font: "Roboto", sans-serif;
+    /* Body text & paragraphs */
     --brand-font: "Playfair", serif;
+    /* Hero titles & branding */
 }
 
+/* ==========================================================================
+   BASE LAYER - Global Reset & Typography
+   ========================================================================== */
 @layer base {
+
+    /* Universal Reset - Clean slate for all elements */
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
         font-family: var(--body-font);
+        /* Default body font */
     }
 }
 
+/* ==========================================================================
+   LAYOUT - Full viewport utilities
+   ========================================================================== */
 html,
 body {
     width: 100%;
+    /* Ensure full width rendering */
 }
 
+/* ==========================================================================
+   OVERVIEW SECTION - Hero Landing Page Styling
+   ========================================================================== */
+/* Main container with background positioning */
 .overview {
     position: relative;
     min-height: 100vh;
+    /* Full viewport height */
     width: 100%;
     overflow: hidden;
-    /* ensures pseudo-element stays contained */
+    /* Contain pseudo-elements */
 }
 
-/* Background image with blur */
+/* 
+ * Background Image Layer (Blur Effect)
+ * Creates blurred cinematic backdrop
+ */
 .overview::before {
     content: "";
     position: absolute;
     inset: 0;
+    /* Full container coverage */
     background: url("/over.jpg") no-repeat center center/cover;
     filter: blur(8px);
+    /* Artistic blur effect */
     transform: scale(1.05);
-    /* prevents edges from showing */
+    /* Prevent edge gaps */
     z-index: 0;
+    /* Background layer */
 }
 
-/* Dark overlay for readability */
+/* 
+ * Dark Overlay Layer 
+ * Ensures text readability over blurred image
+ */
 .overview::after {
     content: "";
     position: absolute;
     inset: 0;
+    /* Full coverage */
     background: rgba(0, 0, 0, 0.6);
+    /* 60% opacity dark overlay */
     z-index: 1;
+    /* Above background, below content */
 }
 
-/* Content stays sharp */
+/* 
+ * Content Layer 
+ * Keeps hero text sharp above blurred background
+ */
 .overview .content {
     position: relative;
     z-index: 2;
-    /* above blur + overlay */
+    /* Topmost layer - stays crisp */
 }
 
-
-
+/* ==========================================================================
+   TYPOGRAPHY SYSTEM - Font Families
+   ========================================================================== */
+/* Primary headings use bold, modern Montserrat */
 h1,
 h2,
 h3,
@@ -67,36 +105,7 @@ h6 {
     font-family: var(--primary-font);
 }
 
+/* Body text uses clean, readable Roboto */
 p {
     font-family: var(--body-font);
-}
-
-.topDown {
-    animation: topDown 1s ease-in;
-}
-
-@keyframes topDown {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0px);
-        opacity: 1;
-    }
-}
-
-.fadeIn {
-    animation: fadeIn 3s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
 }

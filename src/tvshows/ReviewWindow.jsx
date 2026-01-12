@@ -40,8 +40,6 @@ const ReviewWindow = () => {
   if (error) return <p>{error}</p>;
   if (!reviews.length) return <p>No reviews available.</p>;
 
-  console.log("Reviews:", reviews);
-
   return (
     <>
       {reviews.map((review) => {

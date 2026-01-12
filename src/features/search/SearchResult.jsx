@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../context/ThemeProvider";
-
+import { motion } from "framer-motion";
 /**
  * SearchResult Component
  * Renders a dropdown list of search results with keyboard navigation support.
@@ -38,7 +38,11 @@ const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", damping: 20, stiffness: 300 }}
       className={`absolute top-full mt-5 left-1/2 transform -translate-x-1/2 sm:w-[60vw] max-w-md sm:max-w-lg backdrop-blur-lg rounded-b shadow-2xl max-h-80 overflow-y-auto
         [&::-webkit-scrollbar]:w-2
         [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
@@ -106,7 +110,7 @@ const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
           No results found
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

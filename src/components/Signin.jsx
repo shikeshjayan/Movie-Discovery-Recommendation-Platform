@@ -1,62 +1,109 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { signinSchema } from "../validation/authSchema";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import { auth } from "../services/firebase";
-import { useNavigate, useLocation } from "react-router-dom"; // Added useLocation
-import { useContext, useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useContext, useState, useEffect } from "react";
 import { ThemeContext } from "../context/ThemeProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-
+import BlurImage from "../ui/BlurImage";
+import { motion } from "framer-motion";
 /**
  * Signin Component
- * Handles user authentication via Firebase email/password login.
- * Includes form validation using Yup and visibility toggles for the password field.
+ * ----------------
+ * Login form with:
+ * - Email + password fields
+ * - Remember Me (localStorage + sessionStorage)
+ * - Password visibility toggle
+ * - Password strength indicator
+ * - Forgot password handler
+ * - Redirect after login
  */
 const Signin = () => {
-  // Navigation & Router hooks
   const navigate = useNavigate();
-  const location = useLocation(); // Required to access navigation state (previous page)
+  const location = useLocation();
   const { theme } = useContext(ThemeContext);
 
-  // Local UI State
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
 
-  // Form configuration with React Hook Form & Yup Validation
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(signinSchema),
-    mode: "onSubmit", // Validates only when user clicks submit
+    mode: "onSubmit",
   });
 
-  /**
-   * Handles the form submission logic.
-   * Attempts to sign in the user and redirects them upon success.
-   * @param {Object} data - Form data containing email and password
-   */
-  const onSubmit = async (data) => {
-    // console.log("LOGIN SUBMITTED", data); // Unnecessary for production
+  const passwordValue = watch("password");
 
+  // ✅ Load saved credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberEmail");
+    const savedPassword = sessionStorage.getItem("rememberPassword");
+
+    if (savedEmail) {
+      setValue("email", savedEmail);
+      setRememberMe(true); // auto-check "Remember Me"
+    }
+    if (savedPassword) {
+      setValue("password", savedPassword);
+    }
+  }, [setValue]);
+
+  // ✅ Toggle password visibility
+  const toggleVisibility = () => setShowPassword((prev) => !prev);
+
+  // ✅ Password strength checker
+  const checkStrength = (password) => {
+    if (!password) return "";
+    if (password.length < 6) return "Weak";
+    if (
+      /[A-Z]/.test(password) &&
+      /\d/.test(password) &&
+      /[^A-Za-z0-9]/.test(password)
+    ) {
+      return "Strong";
+    }
+    return "Medium";
+  };
+
+  // ✅ Update strength on password change
+  useEffect(() => {
+    setPasswordStrength(checkStrength(passwordValue));
+  }, [passwordValue]);
+
+  // ✅ Handle form submission
+  const onSubmit = async (data) => {
     try {
-      // Attempt Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(
         auth,
         data.email,
         data.password
       );
 
-      // console.log("Login Success:", userCredential.user); // Unnecessary for production
+      // ✅ Save or clear credentials based on "Remember Me"
+      if (rememberMe) {
+        localStorage.setItem("rememberEmail", data.email);
+        sessionStorage.setItem("rememberPassword", data.password);
+      } else {
+        localStorage.removeItem("rememberEmail");
+        sessionStorage.removeItem("rememberPassword");
+      }
 
-      // Redirect to the page they came from, or default to home
-      // Note: location.state is set if you used <Navigate state={{ from: location }} /> elsewhere
+      // ✅ Redirect to intended page or fallback to /home
       const redirectTo = location.state?.from || "/home";
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      // Error handling based on Firebase error codes
       if (error.code === "auth/wrong-password") {
         alert("Incorrect password");
       } else if (error.code === "auth/user-not-found") {
@@ -67,11 +114,19 @@ const Signin = () => {
     }
   };
 
-  /**
-   * Toggles the password input visibility between 'text' and 'password'
-   */
-  const toggleVisibility = () => {
-    setShowPassword((prev) => !prev);
+  // ✅ Handle forgot password
+  const handleForgotPassword = async () => {
+    const email = watch("email");
+    if (!email) {
+      alert("Please enter your email first");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent!");
+    } catch (error) {
+      alert("Failed to send reset email");
+    }
   };
 
   return (
@@ -82,38 +137,27 @@ const Signin = () => {
           : "bg-[#ECF0FF] text-[#312F2C]"
       }`}
     >
-      {/* Main Card Container */}
-      <div className="bg-[#ECF0FF] w-full max-w-4xl h-150 flex rounded-lg shadow-lg overflow-hidden">
-        {/* Left Side - Image (Hidden on mobile) */}
+      <div className="bg-[#ECF0FF] w-full max-w-4xl h-150 flex rounded shadow-lg overflow-hidden">
+        {/* Left Side Image */}
         <div className="hidden md:block w-1/2 relative">
-          <img
+          <BlurImage
             src="/signupCover.jpg"
             alt="Signin Cover"
             className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy" // Optimization: Lazy load non-critical images
+            loading="lazy"
           />
         </div>
 
-        {/* Right Side - Form */}
-        <div className="relative w-full md:w-1/2 p-8 flex flex-col justify-center">
-          <h4 className="text-2xl font-semibold mb-6 text-blue-500">Log In</h4>
-
-          {/* Navigation to Sign Up */}
-          <h5
-            onClick={() => navigate("/signup")}
-            className="absolute top-4 right-4 text-blue-500 cursor-pointer hover:underline"
-            role="button"
-            tabIndex={0}
-          >
-            Sign Up
-          </h5>
+        {/* Right Side Form */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
+          <h4 className="text-2xl font-semibold mb-6 text-blue-500">Sign In</h4>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-5"
-            noValidate // Disables browser default validation to use custom Yup validation
+            noValidate
           >
-            {/* Email Field */}
+            {/* Email */}
             <div className="flex flex-col gap-1">
               <label htmlFor="email" className="text-blue-300 font-medium">
                 Email
@@ -133,7 +177,7 @@ const Signin = () => {
               )}
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="flex flex-col gap-1">
               <label htmlFor="password" className="text-blue-300 font-medium">
                 Password
@@ -148,7 +192,7 @@ const Signin = () => {
                   {...register("password")}
                 />
                 <button
-                  type="button" // Prevent form submission
+                  type="button"
                   onClick={toggleVisibility}
                   className="absolute right-3 text-[#312F2C] focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
@@ -161,17 +205,70 @@ const Signin = () => {
                   {errors.password.message}
                 </p>
               )}
+              {passwordStrength && (
+                <p
+                  className={`text-sm mt-1 ${
+                    passwordStrength === "Weak"
+                      ? "text-red-500"
+                      : passwordStrength === "Medium"
+                      ? "text-yellow-500"
+                      : "text-green-500"
+                  }`}
+                >
+                  Strength: {passwordStrength}
+                </p>
+              )}
             </div>
 
-            {/* Submit Button */}
-            <button
+            {/* Remember Me & Forgot Password */}
+            <div className="flex justify-between items-center mt-2">
+              <div className="flex items-center gap-2">
+                <motion.input
+                  whileHover={{
+                    borderColor: "#0073ff",
+                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+                  }}
+                  whileFocus={{
+                    scale: 1.03,
+                    letterSpacing: "-0.5px",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <label htmlFor="rememberMe" className="text-blue-500 text-sm">
+                  Remember Me
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-blue-500 text-sm hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            {/* Submit */}
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               disabled={isSubmitting}
               type="submit"
               className="mt-4 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Logging in..." : "Login"}
-            </button>
+            </motion.button>
           </form>
+
+          <div className="flex justify-center gap-2 mt-4 text-sm">
+            <p className="text-gray-500">Don't have an account?</p>
+            <Link to="/signup" className="text-blue-500 hover:underline">
+              Sign Up
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -4,36 +4,47 @@ import { useConfirmation } from "../hooks/useConfirmation";
 import ConfirmModal from "../ui/ConfirmModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
 
+/**
+ * History Component
+ * --------------------------------------------------
+ * Displays a responsive grid of recently watched movies.
+ * Allows removing individual items or clearing the entire history.
+ */
 const History = () => {
+  // Access history state and actions from context
   const { history, removeFromHistory, clearHistory } = useHistory();
+
+  // Manage confirmation modal state and actions
   const { isOpen, pendingId, type, openSingle, openClear, close } =
     useConfirmation();
 
+  // If history is empty, render nothing
   if (!history.length) return null;
 
+  /**
+   * Handle confirmation modal action
+   * - Remove single item or clear all based on type
+   */
   const confirmActionHandler = () => {
-    if (type === "single") {
-      removeFromHistory(pendingId); // ✅ remove only one item
-    }
-
-    if (type === "clear") {
-      clearHistory(); // ✅ clear all items
-    }
-
+    if (type === "single") removeFromHistory(pendingId);
+    if (type === "clear") clearHistory();
     close();
   };
 
   return (
     <section className="flex flex-col gap-4 px-4">
+      {/* Header with Clear All button */}
       <div className="flex items-center justify-between">
         <h4 className="popular-movies md:text-3xl">Recently Watched</h4>
 
         <button
           onClick={openClear}
           title="Clear watch history"
-          className="cursor-pointer"
+          className="cursor-pointer "
         >
+          {/* Red X Icon for clearing all history */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="24px"
@@ -46,18 +57,8 @@ const History = () => {
         </button>
       </div>
 
-      {/* Responsive Grid */}
-      <div
-        className="
-      grid
-      grid-cols-1
-      sm:grid-cols-3
-      md:grid-cols-4
-      lg:grid-cols-5
-      xl:grid-cols-6
-      gap-6
-    "
-      >
+      {/* Grid of watched items */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
         {history.map((item) => {
           const title = item.name || item.original_name || item.title;
 
@@ -67,43 +68,43 @@ const History = () => {
               to={`/movie/${item.id}`}
               className="group relative no-underline"
             >
-              {/* Poster */}
-              <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg shadow-md">
+              {/* Poster Image */}
+              <div className="relative w-full aspect-2/3 overflow-hidden rounded-lg shadow-md">
                 <img
                   src={`https://image.tmdb.org/t/p/w342${item.poster_path}`}
                   alt={title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
-                {/* ❌ Remove single item */}
-                <button
+                {/* Remove single item button */}
+                <motion.button
                   onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    e.preventDefault(); // Prevent navigation
+                    e.stopPropagation(); // Prevent bubbling
                     openSingle(item.id);
                   }}
+                  whileHover={{ scale: 1.2, rotate: 15 }}
+                    whileTap={{ scale: 0.9, rotate: 0 }}
                   aria-label="Remove from history"
                   className="
-                absolute top-2 right-2
-                text-red-600
-                rounded-full
-                w-7 h-7
-                flex items-center justify-center
-                z-20
-              "
+                    absolute top-2 right-2
+                      w-7 h-7 flex items-center justify-center
+                      rounded-full bg-red-600 text-white
+                      shadow-md z-20
+                  "
                 >
                   <FontAwesomeIcon icon={faXmark} size="sm" />
-                </button>
+                </motion.button>
               </div>
 
-              {/* Title */}
+              {/* Movie Title */}
               <h5 className="mt-2 text-center text-sm truncate">{title}</h5>
             </Link>
           );
         })}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal for single or clear actions */}
       <ConfirmModal
         open={isOpen}
         onConfirm={confirmActionHandler}

@@ -4,7 +4,16 @@ import { useWishlist } from "../context/WishlistContext";
 import ConfirmModal from "../ui/ConfirmModal";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { motion } from "framer-motion";
 
+/**
+ * Wishlist Component
+ * --------------------------------------------------
+ * - Displays wishlist items in a responsive grid
+ * - Click card to navigate to movie/TV show
+ * - Animated card lift on hover
+ * - Animated remove button
+ */
 const Wishlist = () => {
   const { wishlist, removeFromWishlist } = useWishlist();
   const navigate = useNavigate();
@@ -42,29 +51,21 @@ const Wishlist = () => {
 
   return (
     <>
-      <section className="px-4">
+      <section className="p-8">
         <h4 className="popular-movies md:text-3xl mb-4">My Wishlist</h4>
 
-        {/* Responsive Grid */}
-        <div
-          className="
-            grid
-            grid-cols-2
-            sm:grid-cols-3
-            md:grid-cols-4
-            lg:grid-cols-5
-            xl:grid-cols-6
-            gap-6
-          "
-        >
+        {/* Responsive Grid of Wishlist Items */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {wishlist.map((item) => {
-            const title = item.title || item.name || item.original_name;
+            const title =
+              item?.title || item?.name || item?.original_name || "Unknown";
 
             return (
-              <div
+              <motion.div
                 key={`${item.id}-${item.type}`}
                 role="button"
                 tabIndex={0}
+                aria-label={`Go to ${title}`}
                 onClick={() =>
                   navigate(
                     item.type === "movie"
@@ -80,9 +81,12 @@ const Wishlist = () => {
                       : `/tvshow/${item.id}`
                   )
                 }
+                // Card hover animation
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.97 }}
                 className="group cursor-pointer"
               >
-                {/* Poster */}
+                {/* Poster Container */}
                 <div className="relative w-full aspect-2/3 overflow-hidden rounded-lg shadow-md">
                   <img
                     src={
@@ -91,28 +95,29 @@ const Wishlist = () => {
                         : "/loader.jpg"
                     }
                     alt={title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300"
                   />
 
-                  {/* Remove button */}
-                  <button
+                  {/* Animated Remove Button */}
+                  <motion.button
                     onClick={(e) => handleRemoveClick(e, item)}
+                    whileHover={{ scale: 1.2, rotate: 15 }}
+                    whileTap={{ scale: 0.9, rotate: 0 }}
+                    aria-label={`Remove ${title} from wishlist`}
                     className="
-    absolute top-2 right-2
-    text-red-600
-    rounded-full
-    w-7 h-7
-    flex items-center justify-center
-    z-20
-  "
+                      absolute top-2 right-2
+                      w-7 h-7 flex items-center justify-center
+                      rounded-full bg-red-600 text-white
+                      shadow-md z-20
+                    "
                   >
                     <FontAwesomeIcon icon={faXmark} size="sm" />
-                  </button>
+                  </motion.button>
                 </div>
 
                 {/* Title */}
                 <h5 className="mt-2 text-sm text-center truncate">{title}</h5>
-              </div>
+              </motion.div>
             );
           })}
         </div>

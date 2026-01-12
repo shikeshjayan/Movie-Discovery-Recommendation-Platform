@@ -1,91 +1,74 @@
-import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useHistory } from "../context/HistoryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useWatchLater } from "../context/WatchLaterContext";
-import { db } from "../services/firebase";
-import { collection, onSnapshot, query } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext";
+import StatCard from "../dashboard/components/StatCard";
 import Recommendations from "./Recommendations";
 import Trending from "./Trending";
+import { useUserReviewCount } from "../hooks/useUserReviewCount";
 
-/* ---------------- CUSTOM HOOK ---------------- */
-const useReviewCount = () => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const q = query(collection(db, "comments"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setCount(snapshot.size);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  return count;
-};
-
-/* ---------------- COMPONENT ---------------- */
+/**
+ * DashboardOverview
+ * --------------------------------------------------
+ * Displays a greeting, animated stat cards, and content sections
+ */
 const DashboardOverview = () => {
   const { user } = useAuth();
   const { wishlistCount } = useWishlist();
   const { historyCount } = useHistory();
-  const reviewCount = useReviewCount();
   const { watchLaterCount } = useWatchLater();
+  const reviewCount = useUserReviewCount(user?.uid);
 
-  // Helper: convert email like loganlucus@gmail.com → Logan Lucas
+  // Format display name from Firebase or email
   const formatEmailToName = (email) => {
     if (!email) return "User";
-
     const localPart = email.split("@")[0].toLowerCase();
-
-    // Map known email parts to proper names
-    if (localPart === "loganlucus") {
-      return "Logan Lucas";
-    }
-    if (localPart === "george") {
-      return "George";
-    }
-
-    // Fallback: just capitalize first letter (e.g. john → John)
+    if (localPart === "loganlucus") return "Logan Lucas";
+    if (localPart === "george") return "George";
     return localPart.charAt(0).toUpperCase() + localPart.slice(1);
   };
 
-  // Use displayName from Firebase Auth, fallback to formatted email name
   const displayName =
     user?.displayName || formatEmailToName(user?.email) || "User";
 
   return (
     <section className="p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-[#007BFF]">
+      {/* Greeting */}
+      <h1 className="lg:text-3xl font-bold text-[#007BFF]">
         Welcome back, {displayName} 👋
       </h1>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        {/* Wishlist */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#007BFF] text-[#1A1A1A] hover:shadow-lg transition">
-          <p className="text-sm opacity-90">Wishlist Items</p>
-          <p className="text-3xl font-bold">{wishlistCount}</p>
-        </div>
-
-        {/* History */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#E10098] text-[#1A1A1A] hover:shadow-lg transition">
-          <p className="text-sm opacity-90">History Items</p>
-          <p className="text-3xl font-bold">{historyCount}</p>
-        </div>
-
-        {/* Reviews */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#FFD300] text-[#1A1A1A] hover:shadow-lg transition">
-          <p className="text-sm opacity-90">Reviews</p>
-          <p className="text-3xl font-bold">{reviewCount}</p>
-        </div>
-
-        {/* Watchlater */}
-        <div className="flex flex-col items-center justify-center h-32 rounded-lg shadow-md bg-[#FF7A00] text-[#1A1A1A] hover:shadow-lg transition">
-          <p className="text-sm opacity-90">Watchlater</p>
-          <p className="text-3xl font-bold">{watchLaterCount}</p>
-        </div>
+        <StatCard
+          label="Wishlist Items"
+          count={wishlistCount}
+          bgColor="bg-[#007BFF]"
+          textColor="text-[#1A1A1A]"
+        />
+        <StatCard
+          label="History Items"
+          count={historyCount}
+          bgColor="bg-[#E10098]"
+          textColor="text-[#1A1A1A]"
+        />
+        <StatCard
+          label="Reviews"
+          count={reviewCount}
+          bgColor="bg-[#FFD300]"
+          textColor="text-[#1A1A1A]"
+        />
+        <StatCard
+          label="Watchlater"
+          count={watchLaterCount}
+          bgColor="bg-[#FF7A00]"
+          textColor="text-[#1A1A1A]"
+        />
       </div>
 
       <hr />
+
+      {/* Personalized Content */}
       <Recommendations />
       <Trending />
     </section>

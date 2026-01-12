@@ -10,21 +10,36 @@ import {
 } from "firebase/auth";
 import { db } from "../services/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * Homepage Component
+ * --------------------------------------------------
+ * Displays user profile info and allows updating:
+ * - Username
+ * - Password (with reauthentication)
+ * Includes animated modal feedback using Framer Motion.
+ * Success messages also have subtle count/fade animation.
+ */
 const Homepage = () => {
   const { user } = useAuth();
+
+  // ---------- Form states ----------
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
-  // Modal states
+  // ---------- Modal states ----------
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [currentPasswordInput, setCurrentPasswordInput] = useState("");
   const [passwordChanging, setPasswordChanging] = useState(false);
 
+  // Success animation
+  const [showSuccessAnim, setShowSuccessAnim] = useState(false);
+
   if (!user) return <div className="p-6">Please log in first.</div>;
 
-  // ---------- Username Change ----------
+  // ---------- Username Change Handler ----------
   const handleUsernameChange = async () => {
     if (!newName.trim()) return showModal("Username cannot be empty.");
 
@@ -36,20 +51,19 @@ const Homepage = () => {
         { merge: true }
       );
       setNewName("");
-      showModal("Username updated successfully!");
+      showModal("Username updated successfully!", true);
     } catch (err) {
       console.error(err);
       showModal("Failed to update username: " + err.message);
     }
   };
 
-  // ---------- Password Change ----------
+  // ---------- Password Change Handler ----------
   const handlePasswordChange = () => {
     if (!newPassword.trim()) return showModal("Password cannot be empty.");
     if (newPassword.length < 6)
       return showModal("Password must be at least 6 characters.");
 
-    // Open modal to ask current password
     setCurrentPasswordInput("");
     setModalMessage("Please enter your current password to confirm:");
     setModalOpen(true);
@@ -77,37 +91,64 @@ const Homepage = () => {
 
       await updatePassword(user, newPassword);
       setNewPassword("");
-      showModal("Password updated successfully!");
+      showModal("Password updated successfully!", true);
     } catch (err) {
       console.error(err);
       if (err.code === "auth/invalid-credential")
         showModal("Incorrect current password.");
       else showModal("Failed to update password: " + err.message);
     }
+
     setPasswordChanging(false);
     setModalOpen(false);
   };
 
-  // ---------- Modal Helper ----------
-  const showModal = (message) => {
+  // ---------- Modal Helpers ----------
+  const showModal = (message, success = false) => {
     setModalMessage(message);
     setModalOpen(true);
-  };
 
+    if (success) {
+      setShowSuccessAnim(true);
+      setTimeout(() => setShowSuccessAnim(false), 1200); // Hide after animation
+    }
+  };
   const closeModal = () => setModalOpen(false);
 
-  // ---------- Helper for Initial Avatar ----------
+  // ---------- Helper: Initials for Avatar ----------
   const getInitial = (name, email) => {
-    if (name && name.trim().length > 0) {
+    if (name && name.trim().length > 0)
       return name.trim().charAt(0).toUpperCase();
-    }
     return email ? email.charAt(0).toUpperCase() : "U";
+  };
+
+  // ---------- Framer Motion Variants ----------
+  const cardVariant = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const modalVariant = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.9 },
+  };
+
+  const successAnimVariant = {
+    hidden: { opacity: 0, y: 0, scale: 0.5 },
+    visible: { opacity: 1, y: -30, scale: 1.2 },
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-8">
       {/* USER CARD */}
-      <div className="flex flex-col sm:flex-row items-center gap-6 bg-gray-100 p-6 rounded shadow-lg hover:shadow-lg">
+      <motion.div
+        className="flex flex-col sm:flex-row items-center gap-6 bg-gray-100 p-6 rounded shadow-lg hover:shadow-lg"
+        initial="hidden"
+        animate="visible"
+        variants={cardVariant}
+        transition={{ duration: 0.5 }}
+      >
         {user?.photoURL ? (
           <img
             src={user.photoURL}
@@ -128,12 +169,18 @@ const Homepage = () => {
           </h2>
           <p className="text-blue-900">{user?.email}</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* PROFILE SETTINGS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* CHANGE USERNAME */}
-        <div className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200">
+        <motion.div
+          className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200"
+          initial="hidden"
+          animate="visible"
+          variants={cardVariant}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           <h3 className="text-lg font-semibold mb-4 text-blue-900">
             Change Username
           </h3>
@@ -150,10 +197,16 @@ const Homepage = () => {
           >
             Save Username
           </button>
-        </div>
+        </motion.div>
 
         {/* CHANGE PASSWORD */}
-        <div className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200">
+        <motion.div
+          className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200"
+          initial="hidden"
+          animate="visible"
+          variants={cardVariant}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <h3 className="text-lg font-semibold mb-4 text-blue-900">
             Change Password
           </h3>
@@ -170,48 +223,72 @@ const Homepage = () => {
           >
             Save Password
           </button>
-        </div>
+        </motion.div>
       </div>
 
       {/* MODAL */}
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-300 p-6 rounded w-96 text-gray-900 shadow-lg">
-            <p className="mb-4">{modalMessage}</p>
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariant}
+            transition={{ duration: 0.25 }}
+          >
+            <div className="bg-gray-300 p-6 rounded w-96 text-gray-900 shadow-lg relative">
+              <p className="mb-4">{modalMessage}</p>
 
-            {/* Show input only when confirming password */}
-            {modalMessage.includes("current password") && (
-              <input
-                type="password"
-                value={currentPasswordInput}
-                onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                placeholder="Current password"
-                className="w-full p-2 rounded-lg text-black mb-4"
-              />
-            )}
+              {/* Success animated indicator */}
+              <AnimatePresence>
+                {showSuccessAnim && (
+                  <motion.div
+                    className="absolute top-2 right-2 text-green-600 font-bold"
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    variants={successAnimVariant}
+                    transition={{ duration: 1 }}
+                  >
+                    ✔
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeModal}
-                className="py-1 px-3 bg-gray-100 rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
+              {/* Show input only for password confirmation */}
+              {modalMessage.includes("current password") && (
+                <input
+                  type="password"
+                  value={currentPasswordInput}
+                  onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                  placeholder="Current password"
+                  className="w-full p-2 rounded-lg text-black mb-4"
+                />
+              )}
 
-              {/* Only show confirm button when entering password */}
-              {modalMessage.includes("current password") ? (
+              <div className="flex justify-end gap-2">
                 <button
-                  onClick={confirmPasswordChange}
-                  className="py-1 px-3 bg-red-600 rounded hover:bg-red-700"
-                  disabled={passwordChanging}
+                  onClick={closeModal}
+                  className="py-1 px-3 bg-gray-100 rounded hover:bg-gray-600"
                 >
-                  {passwordChanging ? "Saving..." : "Confirm"}
+                  Cancel
                 </button>
-              ) : null}
+
+                {modalMessage.includes("current password") && (
+                  <button
+                    onClick={confirmPasswordChange}
+                    className="py-1 px-3 bg-red-600 rounded hover:bg-red-700"
+                    disabled={passwordChanging}
+                  >
+                    {passwordChanging ? "Saving..." : "Confirm"}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { tvCast } from "../services/tmdbApi";
 import { useParams } from "react-router-dom";
+import UniversalCarousel from "../ui/UniversalCarousel";
+import MediaSkeleton from "../ui/MediaSkeleton";
+import BlurImage from "../ui/BlurImage";
 
+/**
+ * CastWindow
+ * -------------------
+ * Horizontal scrollable list of cast members for TV shows/movies
+ * Features: AbortController cleanup, popularity sorting, optimized images
+ */
 const CastWindow = () => {
   const { id } = useParams();
   const [cast, setCast] = useState([]);
@@ -14,10 +23,13 @@ const CastWindow = () => {
     (async () => {
       try {
         setLoading(true);
+        setError(null); // Reset previous errors
+
         const data = await tvCast(id, { signal: controller.signal });
 
+        // Sort by popularity (most popular first) with null safety
         const sortedCast = [...(data ?? [])].sort(
-          (a, b) => b.popularity - a.popularity
+          (a, b) => (b.popularity || 0) - (a.popularity || 0)
         );
 
         setCast(sortedCast);
@@ -33,36 +45,58 @@ const CastWindow = () => {
     return () => controller.abort();
   }, [id]);
 
-  if (loading) return <p>Loading cast...</p>;
-  if (error) return <p>{error}</p>;
-  if (!cast.length) return <p>No cast information available.</p>;
-  console.log("Cast: ", cast);
+  // Error state
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-red-500 text-lg font-medium">{error}</p>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!loading && cast.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500 text-lg font-medium">
+          No cast information available
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="flex gap-4 p-4 overflow-x-scroll snap-x snap-mandatory max-h-100 overflow-y-auto
-      [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-  [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]
-  dark:[&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-  dark:[&::-webkit-scrollbar-thumb]:bg-[#0064E0] hover:dark:[&::-webkit-scrollbar-thumb]:bg-[#0073ff]"
-    >
-      {cast.map((actor) => (
-        <div key={actor.id} className="shrink-0 text-center snap-start">
-          <img
+    <UniversalCarousel
+      items={cast}
+      loading={loading}
+      skeleton={<MediaSkeleton />}
+      className="max-h-100"
+      renderItem={(actor) => (
+        <div className="shrink-0 text-center snap-start mt-4 w-44 hover:scale-[1.02] transition-transform">
+          {/* Actor Profile Image */}
+          <BlurImage
             src={
               actor.profile_path
                 ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
                 : "/Loader.svg"
             }
-            alt={actor.name}
-            className="max-w-40 h-60 object-cover rounded mx-4"
+            alt={`${actor.name} as ${actor.character}`}
+            className="max-w-40 h-60 mx-4 rounded-lg shadow-md hover:shadow-xl transition-shadow border border-gray-100 dark:border-gray-700"
+            loading="lazy"
           />
-          <p className="mt-2 font-semibold">{actor.name}</p>
-          <p className="text-sm text-gray-600">as {actor.character}</p>
+
+          {/* Actor Name */}
+          <p className="mt-3 font-semibold text-gray-900 dark:text-white text-base leading-tight px-2 truncate">
+            {actor.name}
+          </p>
+
+          {/* Character Role */}
+          <p className="max-w-40 text-sm text-gray-600 dark:text-gray-400 leading-relaxed px-2 truncate">
+            as {actor.character}
+          </p>
         </div>
-      ))}
-    </div>
+      )}
+    />
   );
 };
 

@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ProfileDropdown from "./ProfileDropdown";
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
-
+import { motion } from "framer-motion";
 /**
  * Header Component
  * Renders the main navigation bar with:
@@ -51,7 +51,10 @@ const Header = () => {
   return (
     <header>
       {/* Desktop Navigation */}
-      <nav
+      <motion.nav
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.05, ease: "easeInOut" }}
         className={`fixed top-0 w-full h-20 flex justify-between items-center z-20 py-4 px-4 shadow-md transition-colors duration-300 ${
           theme === "dark"
             ? "bg-[#312F2C] text-[#FAFAFA]"
@@ -59,55 +62,117 @@ const Header = () => {
         }`}
       >
         {/* Logo */}
-        <div
-          className="fadeIn text-3xl font-bold text-[#0073ff] cursor-pointer"
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut", delay: 0.3 }}
+          whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
+          className="text-3xl font-bold text-[#0073ff] cursor-pointer"
           onClick={() => navigate("/home")}
         >
           RMDB
-        </div>
+        </motion.div>
 
         {/* Desktop Navigation Links */}
-        <ul className="topDown hidden md:flex gap-6 uppercase font-medium">
-          <NavLink
-            to="/home"
-            className={({ isActive }) =>
-              isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
-            }
+        <ul className="hidden md:flex gap-6 uppercase font-medium">
+          <motion.li
+            initial={{ y: "-30px", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut", delay: 0.3 }}
+            whileHover={{
+              scale: 1.1,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{
+              scale: 0.95,
+              rotate: 1,
+              transition: { duration: 0.1 },
+            }}
           >
-            Home
-          </NavLink>
-          <NavLink
-            to="/movies"
-            className={({ isActive }) =>
-              isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
-            }
+            <NavLink
+              to="/home"
+              className={({ isActive }) =>
+                isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
+              }
+            >
+              Home
+            </NavLink>
+          </motion.li>
+          <motion.li
+            initial={{ y: "-30px", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.5 }}
+            whileHover={{
+              scale: 1.1,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{
+              scale: 0.95,
+              rotate: 1,
+              transition: { duration: 0.1 },
+            }}
           >
-            Movies
-          </NavLink>
-          <NavLink
-            to="/tvshows"
-            className={({ isActive }) =>
-              isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
-            }
+            <NavLink
+              to="/movies"
+              className={({ isActive }) =>
+                isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
+              }
+            >
+              Movies
+            </NavLink>
+          </motion.li>
+          <motion.li
+            initial={{ y: "-30px", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.5 }}
+            whileHover={{
+              scale: 1.1,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{
+              scale: 0.95,
+              rotate: 1,
+              transition: { duration: 0.1 },
+            }}
           >
-            TV Shows
-          </NavLink>
+            <NavLink
+              to="/tvshows"
+              className={({ isActive }) =>
+                isActive ? "text-[#0064E0]" : "hover:text-[#0073ff]"
+              }
+            >
+              TV Shows
+            </NavLink>
+          </motion.li>
         </ul>
 
         {/* Right Side: Search, Theme Toggle, Profile/Login */}
-        <div className="topDown hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6">
           <SearchBox />
 
           {/* Theme Toggle Button */}
-          <button onClick={themeToggle} className="topDown text-xl">
+          <motion.button
+            whileHover={{ rotate: 90 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 5, ease: "easeOut" }}
+            onClick={themeToggle}
+            className="text-xl"
+          >
             <FontAwesomeIcon
               icon={theme === "dark" ? faSun : faMoon}
               color={theme === "dark" ? "#ffffff" : "#000"}
             />
-          </button>
+          </motion.button>
 
           {/* Profile/Login Button + Dropdown */}
-          <div className="topDown relative" ref={profileRef}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeIn", delay: 1}}
+            className="relative"
+            ref={profileRef}
+          >
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center gap-2 font-medium rounded px-6 py-2 bg-[#0064E0] text-[#FAFAFA] hover:bg-[#0073ff] transition"
@@ -119,7 +184,7 @@ const Header = () => {
               isOpen={isProfileOpen}
               onClose={() => setIsProfileOpen(false)}
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* Mobile Menu Toggle Buttons */}
@@ -134,7 +199,7 @@ const Header = () => {
             />
           </button>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (

@@ -3,141 +3,130 @@ import { popularTVShows } from "../services/tmdbApi";
 import { Link, useNavigate } from "react-router-dom";
 import { useHistory } from "../context/HistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
+import { useWishlist } from "../context/WishlistContext";
+import { useAuth } from "../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-regular-svg-icons";
 import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
-import { useAuth } from "../context/AuthContext";
-import { useWishlist } from "../context/WishlistContext"; // ✅ import wishlist
+import { motion } from "framer-motion";
 
-const Tvshowcase = () => {
-  const [popularShowsList, setPopularShowsList] = useState([]);
+import BlurImage from "../ui/BlurImage";
+import UniversalCarousel from "../ui/UniversalCarousel"
+
+const TvShowcase = () => {
+  const [shows, setShows] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const { addToHistory } = useHistory();
   const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist(); // ✅ use wishlist
-  const navigate = useNavigate();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    popularTVShows().then(setPopularShowsList);
+    popularTVShows()
+      .then(setShows)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <section className="flex flex-col gap-4">
-      <h4 className="my-2 pl-4 md:text-3xl">Popular TV Shows</h4>
+    <UniversalCarousel
+      title="Popular TV Shows"
+      items={shows}
+      loading={loading}
+      renderItem={(show) => {
+        const isInWatchLater = watchLater.some((s) => s.id === show.id);
+        const isWishlisted = isInWishlist(show.id, "tv");
 
-      <div
-        className="flex gap-4 overflow-x-auto pb-4
-        [&::-webkit-scrollbar]:w-2
-        [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-        [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]
-        dark:[&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-        dark:[&::-webkit-scrollbar-thumb]:bg-[#0064E0] hover:dark:[&::-webkit-scrollbar-thumb]:bg-[#0073ff]"
-      >
-        {popularShowsList.map((shows) => {
-          const isInWatchLater = watchLater.some((s) => s.id === shows.id);
-          const isWishlisted = isInWishlist(shows.id, "tv"); // ✅ check wishlist
-
-          return (
+        return (
+          <motion.div
+            key={show.id}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 260 }}
+            className="shrink-0"
+          >
             <Link
-              key={shows.id}
-              to={`/tvshow/${shows.id}`}
+              to={`/tvshow/${show.id}`}
               onClick={() =>
                 addToHistory({
-                  id: shows.id,
-                  title: shows.name || shows.title,
-                  poster_path: shows.poster_path,
-                  vote_average: shows.vote_average,
+                  id: show.id,
+                  title: show.name || show.title,
+                  poster_path: show.poster_path,
+                  vote_average: show.vote_average,
                   type: "tv",
                 })
               }
-              className="group relative no-underline shrink-0"
+              className="group block"
             >
-              <div className="relative w-50">
-                <img
-                  src={`https://image.tmdb.org/t/p/w342${shows.poster_path}`}
-                  alt={shows.name || shows.title}
-                  className="w-full rounded shadow-md"
+              <div className="relative w-48">
+                <BlurImage
+                  src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
+                  alt={show.name || show.title}
+                  className="w-full h-67.5 rounded shadow-md"
                 />
 
-                {/* Watch Later Button */}
+                {/* Watch Later */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    if (!user) {
-                      navigate("/signin", {
-                        state: { message: "Login required" },
-                      });
-                      return;
-                    }
+                    if (!user) return navigate("/signin");
 
                     isInWatchLater
-                      ? removeFromWatchLater(shows.id)
-                      : addToWatchLater(shows);
+                      ? removeFromWatchLater(show.id)
+                      : addToWatchLater(show);
                   }}
-                  className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
-                    opacity-100 lg:opacity-0 md:group-hover:opacity-100
-                    transition-opacity duration-300 cursor-pointer"
+                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded
+                  opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
                 >
-                  {isInWatchLater ? (
-                    <FontAwesomeIcon icon={faDeleteLeft} />
-                  ) : (
-                    <FontAwesomeIcon icon={faClock} />
-                  )}
+                  <FontAwesomeIcon
+                    icon={isInWatchLater ? faDeleteLeft : faClock}
+                  />
                 </button>
 
-                {/* Rating */}
-                <span className="absolute bottom-2 left-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  ★ {shows.vote_average?.toFixed(1) ?? "N/A"}
-                </span>
-
-                {/* Wishlist Button */}
+                {/* Wishlist */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    if (!user) {
-                      navigate("/signin", {
-                        state: { message: "Login required" },
-                      });
-                      return;
-                    }
+                    if (!user) return navigate("/signin");
 
                     isWishlisted
-                      ? removeFromWishlist(shows.id, "tv")
+                      ? removeFromWishlist(show.id, "tv")
                       : addToWishlist({
-                          id: shows.id,
-                          title: shows.name || shows.title,
-                          poster_path: shows.poster_path,
-                          vote_average: shows.vote_average,
+                          id: show.id,
+                          title: show.name || show.title,
+                          poster_path: show.poster_path,
+                          vote_average: show.vote_average,
                           type: "tv",
                         });
                   }}
-                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0
+                  group-hover:opacity-100 transition"
                 >
-                  {isWishlisted ? (
-                    <FontAwesomeIcon
-                      icon={faHeart}
-                      style={{ color: "#FF0000" }}
-                    /> // filled red heart
-                  ) : (
-                    <FontAwesomeIcon
-                      icon={faHeart}
-                      style={{ color: "#FFFFFF" }}
-                    /> // empty white heart
-                  )}
+                  <FontAwesomeIcon
+                    icon={faHeart}
+                    style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}
+                  />
                 </button>
+
+                {/* Rating */}
+                <span className="absolute bottom-2 left-2 bg-yellow-500 text-black
+                font-bold text-sm px-3 py-1 rounded opacity-0
+                group-hover:opacity-100 transition">
+                  ★ {show.vote_average?.toFixed(1) ?? "N/A"}
+                </span>
               </div>
 
-              <h5 className="mt-2 text-center text-sm">{shows.name || shows.title}</h5>
+              <h5 className="mt-2 text-center text-sm truncate">
+                {show.name || show.title}
+              </h5>
             </Link>
-          );
-        })}
-      </div>
-    </section>
+          </motion.div>
+        );
+      }}
+    />
   );
 };
 
-export default Tvshowcase;
+export default TvShowcase;

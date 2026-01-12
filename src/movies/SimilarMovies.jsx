@@ -1,116 +1,146 @@
-import { Link, useParams } from "react-router-dom";
-import { similarMovies } from "../services/tmdbApi";
 import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { similarMovies } from "../services/tmdbApi";
 import { useHistory } from "../context/HistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
-import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { useWishlist } from "../context/WishlistContext";
+import { useAuth } from "../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-regular-svg-icons";
+import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
+
+import BlurImage from "../ui/BlurImage";
+import UniversalCarousel from "../ui/UniversalCarousel";
 
 const SimilarMovies = () => {
   const { id } = useParams();
-  const [similar, setSimilar] = useState([]);
-  const [similarLoading, setSimilarLoading] = useState(true);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
   const { addToHistory } = useHistory();
   const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
 
-  // Fetch Similar
+  // ---------------- Fetch Similar Movies ----------------
   useEffect(() => {
     let isMounted = true;
-
-    const fetchSimilarMovies = async () => {
+    const fetchSimilar = async () => {
       try {
-        setSimilarLoading(true);
+        setLoading(true);
         const data = await similarMovies(id);
-        if (isMounted) {
-          setSimilar(data || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch similar movies", error);
+        if (isMounted) setMovies(data || []);
+      } catch (err) {
+        console.error("Failed to fetch similar movies", err);
       } finally {
-        if (isMounted) setSimilarLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-
-    fetchSimilarMovies();
-
+    fetchSimilar();
     return () => {
       isMounted = false;
     };
   }, [id]);
 
   return (
-    <article className="flex flex-col gap-4">
-      <h4 className="text-3xl">You might also like</h4>
+    <UniversalCarousel
+      title="You might also like"
+      items={movies}
+      loading={loading}
+      renderItem={(movie) => {
+        const isInWatchLater = watchLater.some((m) => m.id === movie.id);
+        const isWishlisted = isInWishlist(movie.id, "movie");
 
-      {similarLoading && (
-        <p className="text-gray-400 mt-6">Loading similar movies...</p>
-      )}
+        return (
+          <motion.div
+            key={movie.id}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 260 }}
+            className="shrink-0"
+          >
+            <Link
+              to={`/movie/${movie.id}`}
+              onClick={() =>
+                addToHistory({
+                  id: movie.id,
+                  title: movie.title,
+                  poster_path: movie.poster_path,
+                  vote_average: movie.vote_average,
+                  type: "movie",
+                })
+              }
+              className="group block"
+            >
+              <div className="relative w-48">
+                <BlurImage
+                  src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                  alt={movie.title}
+                  className="w-full h-67.5 rounded shadow-md"
+                />
 
-      {!similarLoading && similar.length === 0 && (
-        <p className="text-gray-500 mt-6">No similar movies found.</p>
-      )}
+                {/* Watch Later */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!user) return navigate("/signin");
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center">
-        {similar.slice(0, 12).map((movie) => {
-          if (!movie.poster_path) return null;
-
-          const isInWatchLater = watchLater.some((m) => m.id === movie.id);
-
-          return (
-            <div key={movie.id} className="relative group w-50">
-              <Link
-                onClick={() =>
-                  addToHistory({
-                    id: movie.id,
-                    title: movie.title,
-                    poster_path: movie.poster_path,
-                    vote_average: movie.vote_average,
-                    type: "movie",
-                  })
-                }
-                to={`/movie/${movie.id}`}
-                className="no-underline block cursor-pointer"
-              >
-                <div>
-                  <img
-                    src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-                    alt={movie.title}
-                    className="w-50 h-75 rounded shadow-md object-cover"
+                    isInWatchLater
+                      ? removeFromWatchLater(movie.id)
+                      : addToWatchLater(movie);
+                  }}
+                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded
+                  opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
+                >
+                  <FontAwesomeIcon
+                    icon={isInWatchLater ? faDeleteLeft : faClock}
                   />
-                  <h5 className="w-50 px-2 text-center mt-2">{movie.title}</h5>
-                </div>
-              </Link>
+                </button>
 
-              {/* Watch Later Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // prevent navigation
-                  isInWatchLater
-                    ? removeFromWatchLater(movie.id)
-                    : addToWatchLater(movie);
-                }}
-                className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
-                 opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
-              >
-                {isInWatchLater ? (
-                  <FontAwesomeIcon icon={faDeleteLeft} />
-                ) : (
-                  <FontAwesomeIcon icon={faClock} />
-                )}
-              </button>
+                {/* Wishlist */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!user) return navigate("/signin");
 
-              {/* Rating badge */}
-              <span
-                className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded
-                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
-              >
-                ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </article>
+                    isWishlisted
+                      ? removeFromWishlist(movie.id, "movie")
+                      : addToWishlist({
+                          id: movie.id,
+                          title: movie.title,
+                          poster_path: movie.poster_path,
+                          vote_average: movie.vote_average,
+                          type: "movie",
+                        });
+                  }}
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
+                >
+                  <FontAwesomeIcon
+                    icon={faHeart}
+                    style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}
+                  />
+                </button>
+
+                {/* Rating */}
+                <span
+                  className="absolute bottom-2 left-2 bg-yellow-500 text-black
+                  font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+                >
+                  ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
+                </span>
+              </div>
+
+              <h5 className="mt-2 text-center text-sm truncate">
+                {movie.title}
+              </h5>
+            </Link>
+          </motion.div>
+        );
+      }}
+    />
   );
 };
 

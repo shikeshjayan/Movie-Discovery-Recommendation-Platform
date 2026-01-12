@@ -2,8 +2,11 @@ import { Link } from "react-router-dom";
 import { useHistory } from "../context/HistoryContext";
 import { useConfirmation } from "../hooks/useConfirmation";
 import ConfirmModal from "../ui/ConfirmModal";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+
+import UniversalCarousel from "../ui/UniversalCarousel";
+import BlurImage from "../ui/BlurImage";
 
 const WatchHistory = () => {
   const { history, removeFromHistory, clearHistory } = useHistory();
@@ -13,27 +16,16 @@ const WatchHistory = () => {
   if (!history.length) return null;
 
   const confirmActionHandler = () => {
-    if (type === "single") {
-      removeFromHistory(pendingId);
-    }
-
-    if (type === "clear") {
-      clearHistory();
-    }
-
+    if (type === "single") removeFromHistory(pendingId);
+    if (type === "clear") clearHistory();
     close();
   };
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h4 className="my-2 pl-4 md:text-3xl">Recently Watched</h4>
-
-        <button
-          onClick={openClear}
-          title="Clear watch history"
-          className="cursor-pointer"
-        >
+    <>
+      <div className="flex items-center justify-between px-4">
+        <h4 className="my-2 md:text-3xl font-semibold">Recently Watched</h4>
+        <button onClick={openClear} title="Clear watch history">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="24px"
@@ -46,55 +38,45 @@ const WatchHistory = () => {
         </button>
       </div>
 
-      <div
-        className="flex gap-4 overflow-x-auto pb-4 
-      [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-  [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]
-  dark:[&::-webkit-scrollbar-track]:bg-[#FAFAFA]
-  dark:[&::-webkit-scrollbar-thumb]:bg-[#0064E0] hover:dark:[&::-webkit-scrollbar-thumb]:bg-[#0073ff]"
-      >
-        {history.map((item) => (
-          <Link
-            key={item.id}
-            to={`/movie/${item.id}`}
-            className="group relative no-underline shrink-0 snap-start max-w-50"
-          >
-            <div className="relative w-50">
-              <img
+      {/* Use UniversalCarousel */}
+      <UniversalCarousel
+        title="" // Already handled above
+        items={history}
+        loading={false} // History loads instantly
+        renderItem={(item) => (
+          <div key={item.id} className="shrink-0 w-48 relative group">
+            <Link to={`/movie/${item.id}`} className="block">
+              <BlurImage
                 src={`https://image.tmdb.org/t/p/w342${item.poster_path}`}
-                alt={item.title}
-                className="w-full rounded shadow-md"
+                alt={item.name || item.original_name || item.title}
+                className="w-full h-67.5 rounded shadow-md"
               />
 
               <button
+                aria-label="Remove from history"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   openSingle(item.id);
                 }}
-                aria-label="Remove from history"
-                className="
-    absolute top-2 right-2
-    bg-black/70 hover:bg-red-600
-    text-white
-    rounded-full
-    w-7 h-7
-    flex items-center justify-center
-    opacity-0 group-hover:opacity-100
-    transition
-  "
+                className="absolute top-2 right-2
+                  bg-black/70 hover:bg-red-600
+                  text-white rounded-full
+                  w-7 h-7
+                  flex items-center justify-center
+                  opacity-0 group-hover:opacity-100
+                  transition"
               >
                 <FontAwesomeIcon icon={faXmark} size="sm" />
               </button>
-            </div>
+            </Link>
 
-            <h5 className="mt-2 text-center text-sm">
+            <h5 className="mt-2 text-center text-sm truncate">
               {item.name || item.original_name || item.title}
             </h5>
-          </Link>
-        ))}
-      </div>
+          </div>
+        )}
+      />
 
       <ConfirmModal
         open={isOpen}
@@ -109,7 +91,7 @@ const WatchHistory = () => {
             : "This action cannot be undone."
         }
       />
-    </section>
+    </>
   );
 };
 

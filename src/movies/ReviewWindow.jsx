@@ -4,48 +4,63 @@ import { useParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
 import { ThemeContext } from "../context/ThemeProvider";
 
+/**
+ * ReviewWindow Component
+ * --------------------------------------------------
+ * Fetches and displays reviews for a specific movie.
+ * Features:
+ * - Dark/light theme support
+ * - Star rating visualization
+ * - Proper error/loading handling
+ * - Responsive layout
+ */
 const ReviewWindow = () => {
-  const { id } = useParams();
-  const [reviews, setReviews] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { id } = useParams(); // Movie ID from URL
   const { theme } = useContext(ThemeContext);
 
+  const [reviews, setReviews] = useState(null); // Stores fetched reviews
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+
+  // ---------------- Fetch reviews ----------------
   useEffect(() => {
-    const controller = new AbortController();
+    const controller = new AbortController(); // For canceling fetch on unmount
 
     (async () => {
       try {
-        setLoading(true);
+        setLoading(true); // Start loading
         const data = await movieReviews(id, { signal: controller.signal });
 
-        const sortedCast = [...(data ?? [])].sort(
+        // Sort reviews by popularity descending
+        const sortedReviews = [...(data ?? [])].sort(
           (a, b) => b.popularity - a.popularity
         );
 
-        setReviews(sortedCast);
+        setReviews(sortedReviews);
       } catch (err) {
         if (err.name !== "AbortError") {
           setError("Failed to load reviews");
         }
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop loading
       }
     })();
 
-    return () => controller.abort();
+    return () => controller.abort(); // Cleanup on unmount
   }, [id]);
 
-  if (loading) return <p>Loading cast...</p>;
-  if (error) return <p>{error}</p>;
-  if (!reviews.length) return <p>No reviews available.</p>;
+  // ---------------- Render states ----------------
+  if (loading) return <p className="px-4">Loading reviews...</p>;
+  if (error) return <p className="px-4">{error}</p>;
+  if (!reviews.length) return <p className="px-4">No reviews available.</p>;
 
-  console.log("Reviews:", reviews);
-
+  // ---------------- Review cards ----------------
   return (
     <>
       {reviews.map((review) => {
         const { rating, avatar_path } = review.author_details || {};
+
+        // Determine avatar URL
         const avatarUrl = avatar_path
           ? avatar_path.startsWith("/") && !avatar_path.startsWith("/http")
             ? `https://image.tmdb.org/t/p/w45${avatar_path}`
@@ -55,12 +70,13 @@ const ReviewWindow = () => {
         return (
           <div
             key={review.id}
-            className={`p-4 shadow rounded m-8 overflow-hidden ${
-          theme === "dark"
-            ? "bg-[#1f1c18] text-[#FAFAFA]"
-            : "bg-[#cfd3e0] text-[#312F2C]"
-        }`}
+            className={`p-4 rounded shadow m-8 overflow-hidden ${
+              theme === "dark"
+                ? "bg-[#1f1c18] text-[#FAFAFA]"
+                : "bg-[#cfd3e0] text-[#312F2C]"
+            }`}
           >
+            {/* Header: Avatar, Author, Star Rating */}
             <div className="flex flex-col lg:flex-row items-center justify-between px-10">
               <img
                 src={avatarUrl}
@@ -70,9 +86,13 @@ const ReviewWindow = () => {
               <h4 className="font-medium">{review.author}</h4>
               <StarRating value={rating ? rating / 2 : 0} />
             </div>
+
+            {/* Review date */}
             <div className="pl-10 pt-4 italic text-sm wrap-break-word">
               {new Date(review.created_at).toLocaleDateString()}
             </div>
+
+            {/* Review content */}
             <p className="pl-10 mt-2">{review.content}</p>
           </div>
         );

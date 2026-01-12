@@ -3,358 +3,96 @@ import axios from "axios";
 const API_KEY = import.meta.env.VITE_TMDB_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
-// #--------------------------------------------------------------------------------------------------------#
-// BANNER - Upcoming Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Upcoming Movies - Banner
-export const UpcomingMovies = async (page = 1) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching upcoming movies:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Upcoming Movies - Banner
-export const nowPlayingMovies = async (page = 2) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching nowplaying movies:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Airing Shows - Banner
-export const airingShows = async (page = 1) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/on_the_air?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching airing tvshows:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// HOME - Popular Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Popular Movies
-export const popularMovies = async () => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=2`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching popular movies:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
+// Create a configured instance
+const tmdbClient = axios.create({
+  baseURL: BASE_URL,
+  params: {
+    api_key: API_KEY,
+    language: "en-US",
+  },
+});
 
-// Fetch Popular TV Shows
-export const popularTVShows = async () => {
+// --- HELPER FOR LISTS (Movies/TV Grids) ---
+const fetchList = async (endpoint, params = {}) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=2`
-    );
-    return response.data.results;
+    const response = await tmdbClient.get(endpoint, { params });
+    return response.data.results || [];
   } catch (error) {
-    console.error("Error fetching Popular tvshows movies:", error);
+    console.error(`Error fetching list from ${endpoint}:`, error);
     return [];
   }
 };
 
-// #--------------------------------------------------------------------------------------------------------#
-// Discover Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch All Movies
-export const allMovies = async (page = 1) => {
+// --- HELPER FOR SINGLE OBJECTS (Details) ---
+const fetchSingle = async (endpoint, params = {}) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
+    const response = await tmdbClient.get(endpoint, { params });
+    return response.data; // Returns the full object {}
   } catch (error) {
-    console.error("Error fetching all movies:", error);
-    return [];
+    console.error(`Error fetching details from ${endpoint}:`, error);
+    return null; // Return null so components can handle "Not Found"
   }
 };
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch All TV Shows
-export const allTvshows = async (page = 1) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/discover/tv?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching all tvshows:", error);
-    return [];
-  }
-};
-// Fetch Upcoming TV - Banner
-export const UpcomingShows = async (page = 2) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=${page}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching upcoming shows:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// Details Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Movie Details
-export const movieDetails = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching movie details:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Shows Details
 
-export const showsDetails = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/${id}?api_key=${API_KEY}&language=en-US`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching tvshows details:", error);
-    return [];
-  }
-};
 // #--------------------------------------------------------------------------------------------------------#
-// Trailers/Teaser Section
+// EXPORTS (Matches your original names exactly)
 // #--------------------------------------------------------------------------------------------------------#
 
-// Fetch Movie Videos (Trailers)
+export const upcomingMovies = (page = 1) =>
+  fetchList("/movie/popular", { page });
+export const nowPlayingMovies = (page = 2) =>
+  fetchList("/movie/now_playing", { page });
+export const airingShows = (page = 1) => fetchList("/tv/on_the_air", { page });
+export const popularMovies = () => fetchList("/movie/popular", { page: 2 });
+export const popularTVShows = () => fetchList("/tv/popular", { page: 2 });
+export const allMovies = (page = 1) => fetchList("/discover/movie", { page });
+export const allTvshows = (page = 1) => fetchList("/discover/tv", { page });
+
+// FIXED: Details now return the object correctly
+export const movieDetails = (id) => fetchSingle(`/movie/${id}`);
+export const showsDetails = (id) => fetchSingle(`/tv/${id}`);
 
 export const movieVideos = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}&language=en-US`
-    );
-    const results = response.data.results;
-    const trailer = results.find(
-      (vid) =>
-        (vid.site === "YouTube" && vid.type === "Trailer") ||
-        vid.type === "Teaser"
-    );
-
-    return trailer ? trailer.key : null;
-  } catch (error) {
-    console.error("Error fetching movie Videos:", error);
-    return [];
-  }
+  const data = await fetchSingle(`/movie/${id}/videos`);
+  const trailer = data?.results?.find(
+    (vid) =>
+      (vid.site === "YouTube" && vid.type === "Trailer") ||
+      vid.type === "Teaser"
+  );
+  return trailer ? trailer.key : null;
 };
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch TV Videos (Trailers)
 
 export const showVideos = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/${id}/videos?api_key=${API_KEY}&language=en-US`
-    );
-    const results = response.data.results;
-    const trailer = results.find(
-      (vid) =>
-        (vid.site === "YouTube" && vid.type === "Trailer") ||
-        vid.type === "Teaser"
-    );
+  const data = await fetchSingle(`/tv/${id}/videos`);
+  const trailer = data?.results?.find(
+    (vid) =>
+      (vid.site === "YouTube" && vid.type === "Trailer") ||
+      vid.type === "Teaser"
+  );
+  return trailer ? trailer.key : null;
+};
 
-    return trailer ? trailer.key : null;
-  } catch (error) {
-    console.error("Error fetching tvshows videos:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// Similar Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Similar Movies
-export const similarMovies = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching similar movies:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Similar TV Shows
-export const similarShows = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching similar tvshows:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// Search Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Search Media
-export const fetchSearch = async (query) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching search media:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// Genre Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch Movie Genre
-export const fetchMoviesByGenre = async (genre_id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genre_id}`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching movie genre:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch TV Shows Genre
-export const fetchTvShowsByGenre = async (genre_id, page = 1) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/discover/tv`, {
-      params: {
-        api_key: API_KEY,
-        with_genres: genre_id,
-        page,
-      },
-    });
+export const similarMovies = (id) => fetchList(`/movie/${id}/similar`);
+export const similarShows = (id) => fetchList(`/tv/${id}/similar`);
+export const fetchSearch = (query) => fetchList("/search/multi", { query });
+export const fetchMoviesByGenre = (genre_id) =>
+  fetchList("/discover/movie", { with_genres: genre_id });
+export const fetchTvShowsByGenre = (genre_id, page = 1) =>
+  fetchList("/discover/tv", { with_genres: genre_id, page });
 
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching tvshows genre:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// Credits/Cast Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Movies Cast
 export const movieCast = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.cast;
-  } catch (error) {
-    console.error("Error fetching movie cast:", error);
-    return [];
-  }
+  const data = await fetchSingle(`/movie/${id}/credits`);
+  return data?.cast || [];
 };
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for TV Cast
+
 export const tvCast = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/${id}/credits?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.cast;
-  } catch (error) {
-    console.error("Error fetching tvshows cast:", error);
-    return [];
-  }
+  const data = await fetchSingle(`/tv/${id}/credits`);
+  return data?.cast || [];
 };
-// #--------------------------------------------------------------------------------------------------------#
-// Reviews Section
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Movies Review
-export const movieReviews = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}/reviews?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching movie reviews:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for TV Review
-export const tvReviews = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/tv/${id}/reviews?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching tvshows reviews:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for recommendation
-export const recommendations = async (id) => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching recommendations:", error);
-    return [];
-  }
-};
-// #--------------------------------------------------------------------------------------------------------#
-// #--------------------------------------------------------------------------------------------------------#
-// Fetch for Trending
-export const trendingAll = async (timeWindow = "day") => {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/trending/all/${timeWindow}?api_key=${API_KEY}&language=en-US&page=1`
-    );
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching trending all:", error);
-    return [];
-  }
-};
+
+export const movieReviews = (id) => fetchList(`/movie/${id}/reviews`);
+export const tvReviews = (id) => fetchList(`/tv/${id}/reviews`);
+export const recommendations = (id) =>
+  fetchList(`/movie/${id}/recommendations`);
+export const trendingAll = (timeWindow = "day") =>
+  fetchList(`/trending/all/${timeWindow}`);

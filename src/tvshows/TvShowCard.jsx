@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ImageWithLoader from "../ui/ImageWithLoader";
 import TrailerButton from "../components/TrailerButton";
-import MovieCardSkeleton from "../ui/MovieCardSkeleton";
+import MediaDetailsSkeleton from "../ui/MediaDetailsSkeleton";
 import SimilarTvShows from "./SimilarTvShows";
 import useTvShowDetails from "../hooks/useTvShowDetails";
 import CastWindow from "./CastWindow";
@@ -9,17 +9,30 @@ import ReviewWindow from "./ReviewWindow";
 import { useWishlist } from "../context/WishlistContext";
 import CommentBox from "../components/CommentBox";
 
+/**
+ * TvShowCard Component
+ * --------------------
+ * Displays detailed information about a TV show:
+ * - Backdrop & poster
+ * - Title, tagline, rating, year, runtime
+ * - Genres & languages
+ * - Overview
+ * - Trailer button
+ * - Wishlist toggle
+ * - Cast, reviews, comments, and similar shows
+ */
 const TvShowCard = () => {
-  // ✅ Renamed for clarity
   const navigate = useNavigate();
   const { id } = useParams();
-  const { shows, showKey, loading } = useTvShowDetails(id);
+  const { show: shows, showKey, loading } = useTvShowDetails(id);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
-  if (loading || !shows || !showKey) {
-    return <MovieCardSkeleton />;
+  // Show skeleton while loading or if show data is missing
+  if (loading || !shows) {
+    return <MediaDetailsSkeleton />;
   }
 
+  // Build image URLs with fallbacks
   const backdropUrl = shows.backdrop_path
     ? `https://image.tmdb.org/t/p/original${shows.backdrop_path}`
     : "/fallback-backdrop.jpg";
@@ -30,22 +43,28 @@ const TvShowCard = () => {
 
   return (
     <section className="py-4">
+      {/* Main details section */}
       <div className="relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
+        {/* Close button (visible only on larger screens) */}
         <button
           onClick={() => navigate(-1)}
-          className="hidden sm:block text-red-500 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600" // ✅ Fixed top-30 → top-16
+          className="hidden sm:block text-red-500 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
         >
           Close
         </button>
 
+        {/* Blurred backdrop */}
         <div
           className="absolute inset-0 w-full h-full bg-cover bg-center opacity-40 blur-sm"
           style={{ backgroundImage: `url(${backdropUrl})` }}
         />
 
-        <div className="absolute inset-0" />
+        {/* Overlay to darken backdrop */}
+        <div className="absolute inset-0 bg-black/60" />
 
+        {/* Content */}
         <div className="relative z-10 container mx-auto px-6 py-16 flex flex-col md:flex-row items-center md:items-start gap-10">
+          {/* Poster */}
           <div className="shrink-0 w-64 md:w-80 lg:w-96 rounded shadow-2xl overflow-hidden">
             <ImageWithLoader
               src={posterUrl}
@@ -54,15 +73,20 @@ const TvShowCard = () => {
             />
           </div>
 
+          {/* Show details */}
           <div className="flex-1 flex flex-col gap-4 space-y-6 text-center md:text-left">
+            {/* Title + Wishlist button */}
             <div>
               <div className="flex flex-col md:flex-row gap-10 items-center">
                 <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-gray-400">
                   {shows.title || shows.name}
                 </h1>
+
+                {/* Wishlist toggle */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!shows.id) return;
                     isInWishlist(shows.id, "shows")
                       ? removeFromWishlist(shows.id, "shows")
                       : addToWishlist({
@@ -99,6 +123,8 @@ const TvShowCard = () => {
                   )}
                 </button>
               </div>
+
+              {/* Tagline */}
               {shows.tagline && (
                 <p className="text-lg text-gray-400 italic mt-2">
                   "{shows.tagline}"
@@ -106,6 +132,7 @@ const TvShowCard = () => {
               )}
             </div>
 
+            {/* Rating, year, runtime */}
             <div className="flex flex-wrap justify-center md:justify-start gap-3">
               <span className="w-auto px-4 py-2 text-yellow-500 font-bold rounded-full">
                 ★ {shows.vote_average ? shows.vote_average.toFixed(1) : "N/A"}
@@ -134,7 +161,7 @@ const TvShowCard = () => {
               ))}
             </div>
 
-            {/* Languages - Fixed potential crash */}
+            {/* Languages */}
             {shows.spoken_languages?.length > 0 && (
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {shows.spoken_languages.map((lang) => (
@@ -158,6 +185,7 @@ const TvShowCard = () => {
               </p>
             </div>
 
+            {/* Trailer button */}
             <div className="flex gap-4 items-center justify-center md:justify-start">
               <TrailerButton movieKey={showKey} />
             </div>
@@ -165,18 +193,29 @@ const TvShowCard = () => {
         </div>
       </div>
 
+      {/* Cast section */}
       <CastWindow />
+
+      {/* Divider */}
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
 
+      {/* Comments */}
       <CommentBox
         contentId={String(shows.id)}
         contentTitle={shows.name || shows.title}
         contentType="tv"
       />
 
+      {/* Divider */}
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
+
+      {/* Reviews */}
       <ReviewWindow />
+
+      {/* Similar shows */}
       <SimilarTvShows />
+
+      {/* Final divider */}
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
     </section>
   );

@@ -6,7 +6,7 @@ import {
   orderBy,
   query,
   where,
-  Timestamp,
+  serverTimestamp,
   doc,
   deleteDoc,
 } from "firebase/firestore";
@@ -110,8 +110,8 @@ const CommentBox = ({ contentId, contentTitle, contentType }) => {
       username: user.email.split("@")[0],
       text: form.text,
       rating: form.rating,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
 
     // Reset form

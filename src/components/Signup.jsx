@@ -1,44 +1,132 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { signupSchema } from "../validation/authSchema";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useContext, useState, useEffect } from "react";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ThemeContext } from "../context/ThemeProvider";
-
+import BlurImage from "../ui/BlurImage";
+import { motion } from "framer-motion";
 /**
  * Signup Component
- * Handles user registration via Firebase email/password.
- * On success, creates a user document in Firestore and redirects to login.
+ * ----------------
+ * - Email/password sign-up with React Hook Form + Yup
+ * - Password strength indicator
+ * - Confirm password match indicator
+ * - Form data persisted in localStorage (survives refresh)
+ * - Clear form button to reset everything
  */
 const Signup = () => {
   const navigate = useNavigate();
   const { theme } = useContext(ThemeContext);
 
-  // Local state for password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("");
+  const [matchStrength, setMatchStrength] = useState("");
 
-  // Form setup with React Hook Form and Yup validation
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
+    control,
   } = useForm({
     resolver: yupResolver(signupSchema),
     mode: "onBlur",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  /**
-   * Handles form submission: creates a Firebase user and saves profile data.
-   * @param {Object} data - Form data (name, email, password, confirmPassword)
-   */
+  const passwordValue = watch("password") || "";
+  const confirmPasswordValue = watch("confirmPassword") || "";
+
+  // ✅ Load saved form data from localStorage on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem("signupFormData");
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        if (data.name) setValue("name", data.name);
+        if (data.email) setValue("email", data.email);
+        if (data.password) setValue("password", data.password);
+        if (data.confirmPassword)
+          setValue("confirmPassword", data.confirmPassword);
+      } catch (e) {
+        console.warn("Failed to parse saved signup data", e);
+      }
+    }
+  }, [setValue]);
+
+  // ✅ Save form values to localStorage whenever they change
+  const name = useWatch({ control, name: "name" });
+  const email = useWatch({ control, name: "email" });
+  const password = useWatch({ control, name: "password" });
+  const confirmPassword = useWatch({ control, name: "confirmPassword" });
+
+  useEffect(() => {
+    const data = { name, email, password, confirmPassword };
+    localStorage.setItem("signupFormData", JSON.stringify(data));
+  }, [name, email, password, confirmPassword]);
+
+  // ✅ Password strength checker
+  const checkStrength = (password) => {
+    if (!password) return "";
+    if (password.length < 6) return "Weak";
+    if (
+      /[A-Z]/.test(password) &&
+      /\d/.test(password) &&
+      /[^A-Za-z0-9]/.test(password)
+    ) {
+      return "Strong";
+    }
+    return "Medium";
+  };
+
+  // ✅ Progressive match indicator (password vs confirm password)
+  useEffect(() => {
+    setPasswordStrength(checkStrength(passwordValue));
+
+    if (!confirmPasswordValue) {
+      setMatchStrength("");
+      return;
+    }
+
+    let matchCount = 0;
+    for (let i = 0; i < confirmPasswordValue.length; i++) {
+      if (passwordValue[i] === confirmPasswordValue[i]) {
+        matchCount++;
+      }
+    }
+
+    const similarity = (matchCount / passwordValue.length) * 100;
+
+    if (
+      similarity === 100 &&
+      passwordValue.length === confirmPasswordValue.length
+    ) {
+      setMatchStrength("Perfect Match");
+    } else if (similarity > 50) {
+      setMatchStrength("Partially Matching");
+    } else {
+      setMatchStrength("No Match");
+    }
+  }, [passwordValue, confirmPasswordValue]);
+
+  // ✅ Handle form submission
   const onSubmit = async (data) => {
+    setErrorMessage("");
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -54,37 +142,29 @@ const Signup = () => {
         createdAt: serverTimestamp(),
       });
 
+      // ✅ Clear saved form data after successful signup
+      localStorage.removeItem("signupFormData");
+
       navigate("/signin", {
         replace: true,
         state: { success: "Account created. Please log in." },
       });
 
-      // Clear the form after successful signup so it's clean next time
       reset();
     } catch (error) {
-      // Handle common Firebase auth errors
       if (error.code === "auth/email-already-in-use") {
-        alert("This email is already registered. Please log in instead.");
+        setErrorMessage(
+          "This email is already registered. Please log in instead."
+        );
       } else if (error.code === "auth/invalid-email") {
-        alert("Please enter a valid email address.");
+        setErrorMessage("Please enter a valid email address.");
       } else if (error.code === "auth/weak-password") {
-        alert("Password should be at least 6 characters.");
+        setErrorMessage("Password should be at least 6 characters.");
       } else {
-        alert("Sign up failed. Please try again.");
+        setErrorMessage("Sign up failed. Please try again.");
       }
     }
   };
-
-  /**
-   * Toggles password field visibility
-   */
-  const toggleVisibility = () => setShowPassword(!showPassword);
-
-  /**
-   * Toggles confirm password field visibility
-   */
-  const toggleConfirmVisibility = () =>
-    setShowConfirmPassword(!showConfirmPassword);
 
   return (
     <section
@@ -94,45 +174,44 @@ const Signup = () => {
           : "bg-[#ECF0FF] text-[#312F2C]"
       }`}
     >
-      {/* Main signup card */}
-      <div className="bg-[#ECF0FF] w-full max-w-4xl h-150 flex rounded-lg shadow-lg overflow-hidden">
-        {/* Left side - Cover image (hidden on mobile) */}
-        <div className="hidden md:block w-1/2 relative">
-          <img
+      <div className="bg-[#ECF0FF] w-full max-w-4xl min-h-150 flex rounded-lg shadow-lg overflow-hidden">
+        {/* Left side - Cover image */}
+        <div className="hidden md:block w-1/2 relative bg-gray-200">
+          <BlurImage
             src="/signupCover.jpg"
             alt="Sign up cover"
             className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
 
         {/* Right side - Form */}
-        <div className="relative w-full md:w-1/2 p-8 flex flex-col justify-center">
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
           <h4 className="text-2xl font-semibold mb-6 text-blue-500">Sign Up</h4>
-
-          {/* Navigation to Sign In */}
-          <h5
-            onClick={() => navigate("/signin")}
-            className="absolute top-4 right-4 text-blue-500 cursor-pointer hover:underline"
-            role="button"
-            tabIndex={0}
-          >
-            Log In
-          </h5>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-5"
-            noValidate // Disable browser validation; rely on Yup
+            noValidate
           >
-            {/* Username Field */}
+            {/* Username */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="username" className="text-blue-300 font-medium">
+              <label htmlFor="username" className="text-blue-500 font-medium">
                 Username
               </label>
-              <input
+              <motion.input
+                whileHover={{
+                  borderColor: "#0073ff",
+                  boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+                }}
+                whileFocus={{
+                  scale: 1.03,
+                  letterSpacing: "-0.5px",
+                }}
+                whileTap={{ scale: 0.98 }}
                 id="username"
                 type="text"
-                className={`border text-[#312F2C] border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.name ? "border-red-500" : ""
                 }`}
                 {...register("name")}
@@ -144,15 +223,24 @@ const Signup = () => {
               )}
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="email" className="text-blue-300 font-medium">
+              <label htmlFor="email" className="text-blue-500 font-medium">
                 Email
               </label>
-              <input
+              <motion.input
+                whileHover={{
+                  borderColor: "#0073ff",
+                  boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+                }}
+                whileFocus={{
+                  scale: 1.03,
+                  letterSpacing: "-0.5px",
+                }}
+                whileTap={{ scale: 0.98 }}
                 id="email"
                 type="email"
-                className={`border text-[#312F2C] border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.email ? "border-red-500" : ""
                 }`}
                 {...register("email")}
@@ -164,24 +252,33 @@ const Signup = () => {
               )}
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="password" className="text-blue-300 font-medium">
+              <label htmlFor="password" className="text-blue-500 font-medium">
                 Password
               </label>
               <div className="relative flex items-center">
-                <input
+                <motion.input
+                  whileHover={{
+                    borderColor: "#0073ff",
+                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+                  }}
+                  whileFocus={{
+                    scale: 1.03,
+                    letterSpacing: "-0.5px",
+                  }}
+                  whileTap={{ scale: 0.98 }}
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  className={`border text-[#312F2C] border-blue-300 rounded px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.password ? "border-red-500" : ""
                   }`}
                   {...register("password")}
                 />
                 <button
                   type="button"
-                  onClick={toggleVisibility}
-                  className="absolute right-3 text-[#312F2C] focus:outline-none"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
@@ -192,29 +289,51 @@ const Signup = () => {
                   {errors.password.message}
                 </p>
               )}
+              {passwordStrength && (
+                <p
+                  className={`text-xs mt-1 ${
+                    passwordStrength === "Weak"
+                      ? "text-red-500"
+                      : passwordStrength === "Medium"
+                      ? "text-yellow-500"
+                      : "text-green-500"
+                  }`}
+                >
+                  Strength: {passwordStrength}
+                </p>
+              )}
             </div>
 
-            {/* Confirm Password Field */}
+            {/* Confirm Password */}
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="confirmPassword"
-                className="text-blue-300 font-medium"
+                className="text-blue-500 font-medium"
               >
                 Confirm Password
               </label>
               <div className="relative flex items-center">
-                <input
+                <motion.input
+                  whileHover={{
+                    borderColor: "#0073ff",
+                    boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
+                  }}
+                  whileFocus={{
+                    scale: 1.03,
+                    letterSpacing: "-0.5px",
+                  }}
+                  whileTap={{ scale: 0.98 }}
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  className={`border text-[#312F2C] border-blue-300 rounded px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.confirmPassword ? "border-red-500" : ""
                   }`}
                   {...register("confirmPassword")}
                 />
                 <button
                   type="button"
-                  onClick={toggleConfirmVisibility}
-                  className="absolute right-3 text-[#312F2C] focus:outline-none"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 focus:outline-none"
                   aria-label={
                     showConfirmPassword
                       ? "Hide confirm password"
@@ -231,17 +350,58 @@ const Signup = () => {
                   {errors.confirmPassword.message}
                 </p>
               )}
+              {matchStrength && (
+                <p
+                  className={`text-xs mt-1 ${
+                    matchStrength === "Perfect Match"
+                      ? "text-green-500"
+                      : matchStrength === "Partially Matching"
+                      ? "text-yellow-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {matchStrength}
+                </p>
+              )}
             </div>
 
-            {/* Submit Button */}
-            <button
+            {/* Inline error message */}
+            {errorMessage && (
+              <p className="text-red-500 text-sm mt-2 text-center">
+                {errorMessage}
+              </p>
+            )}
+
+            {/* Submit & Clear */}
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               disabled={isSubmitting}
               type="submit"
-              className="mt-4 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Creating..." : "Create Account"}
+            </motion.button>
+
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                localStorage.removeItem("signupFormData");
+              }}
+              className="text-sm text-gray-500 hover:text-red-700"
+            >
+              Clear form
             </button>
           </form>
+
+          {/* Bottom navigation */}
+          <p className="text-gray-500 text-sm mt-4 text-center">
+            Already have an account?{" "}
+            <Link to="/signin" className="text-blue-500 hover:underline">
+              Sign In
+            </Link>
+          </p>
         </div>
       </div>
     </section>

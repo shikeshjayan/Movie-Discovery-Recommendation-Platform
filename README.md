@@ -1,16 +1,99 @@
-# React + Vite
+# 🎬 Recommeded Movie Database — Movie Discovery & Recommendation Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+RMDB is a modern movie discovery web application built with **React** that allows users to explore movies, manage a personalized watchlist, track watch history, and share reviews.  
+It uses **TMDB API** for movie data and **Firebase** for authentication and real-time database features.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Live Demo
 
-## React Compiler
+👉 _Add your deployed link here (Vercel / Netlify / Firebase Hosting)_
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend
+
+- **React.js**
+- **React Router**
+- **Protected Routing**
+- **Context API**
+- **Axios**
+- **Tailwind CSS**
+- **Framer Motion** (Animations)
+- **Font Awesome Icons / icon8**
+
+### Backend / Services
+
+- **Firebase Authentication**
+- **Firebase Firestore**
+- **TMDB API**
+
+---
+
+## ✨ Features
+
+### 🔐 Authentication
+
+- User sign up & login using Firebase Authentication
+- Secure access to user-specific data
+
+### 🎥 Movie Discovery
+
+- Latest Movie
+- Latest TV Shows
+- Trending movies
+- Trending TV Shows
+- Upcoming movies
+- Movie details page
+- TV Shows details page
+- Movie Trailers
+- Search functionality (TMDB)
+
+### ❤️ Wishlist (Watch Later)
+
+- Add movies to wishlist
+- Remove single movie from wishlist
+
+### 🕒 Watch History
+
+- Automatically track watched movies
+- Clear all history option
+- Remove individual history items
+
+### 💬 Reviews & Comments
+
+- Logged-in users can add comments
+- Public read access
+- Secure write access using Firestore rules
+
+### 🎨 UI & UX
+
+- Responsive design
+- Smooth animations
+- Clean, modern UI
+- Dark / Light theme support
+
+---
+
+## 🔒 Firestore Security Rules
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+    }
+  }
+}
+```

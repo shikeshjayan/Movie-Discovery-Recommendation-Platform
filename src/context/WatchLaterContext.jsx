@@ -1,35 +1,61 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const WatchLaterContext = createContext();
+/**
+ * WatchLaterContext
+ * --------------------------------------------------
+ * Manages "Watch Later" movie list with persistence.
+ */
+const WatchLaterContext = createContext(null);
 
+/**
+ * WatchLaterProvider
+ * --------------------------------------------------
+ * Provides watch-later state and actions to the app.
+ */
 export const WatchLaterProvider = ({ children }) => {
-  // Load from localStorage on initial render
+  /**
+   * Initialize watch-later list from localStorage
+   */
   const [watchLater, setWatchLater] = useState(() => {
     const saved = localStorage.getItem("watchLater");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Persist to localStorage whenever watchLater changes
+  /**
+   * Persist watch-later list on every change
+   */
   useEffect(() => {
     localStorage.setItem("watchLater", JSON.stringify(watchLater));
   }, [watchLater]);
 
-  // Add movie to Watch Later
+  /**
+   * Add a movie to Watch Later
+   * - Prevents duplicates
+   */
   const addToWatchLater = (movie) => {
     setWatchLater((prev) => {
-      if (prev.find((m) => m.id === movie.id)) return prev; // avoid duplicates
+      if (prev.some((m) => m.id === movie.id)) return prev;
       return [...prev, movie];
     });
   };
 
-  // Remove single movie
+  /**
+   * Remove a single movie by ID
+   */
   const removeFromWatchLater = (id) => {
     setWatchLater((prev) => prev.filter((m) => m.id !== id));
   };
 
-  // Remove all movies
-  const clearWatchLater = () => setWatchLater([]);
+  /**
+   * Clear entire Watch Later list
+   */
+  const clearWatchLater = () => {
+    setWatchLater([]);
+  };
 
+  /**
+   * Provide watch-later data and actions
+   */
   return (
     <WatchLaterContext.Provider
       value={{
@@ -37,7 +63,6 @@ export const WatchLaterProvider = ({ children }) => {
         addToWatchLater,
         removeFromWatchLater,
         clearWatchLater,
-        setWatchLater,
         watchLaterCount: watchLater.length,
       }}
     >
@@ -46,4 +71,9 @@ export const WatchLaterProvider = ({ children }) => {
   );
 };
 
+/**
+ * useWatchLater
+ * --------------------------------------------------
+ * Custom hook to access Watch Later context
+ */
 export const useWatchLater = () => useContext(WatchLaterContext);

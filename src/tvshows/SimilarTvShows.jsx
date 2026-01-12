@@ -1,109 +1,141 @@
-import { Link, useParams } from "react-router-dom";
-import { similarShows } from "../services/tmdbApi";
 import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { similarShows } from "../services/tmdbApi";
 import { useHistory } from "../context/HistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
-import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { useWishlist } from "../context/WishlistContext";
+import { useAuth } from "../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-regular-svg-icons";
+import { faClock, faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
+import BlurImage from "../ui/BlurImage";
+import UniversalCarousel from "../ui/UniversalCarousel";
 
 const SimilarTvShows = () => {
   const { id } = useParams();
-  const [similar, setSimilar] = useState([]);
-  const [similarLoading, setSimilarLoading] = useState(true);
+  const [shows, setShows] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
   const { addToHistory } = useHistory();
   const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
 
   // Fetch similar shows
   useEffect(() => {
     let isMounted = true;
-
-    const fetchSimilarTvShows = async () => {
+    const fetchSimilar = async () => {
       try {
-        setSimilarLoading(true);
+        setLoading(true);
         const data = await similarShows(id);
-        if (isMounted) setSimilar(data || []);
-      } catch (error) {
-        console.error("Failed to fetch similar TV shows", error);
+        if (isMounted) setShows(data || []);
+      } catch (err) {
+        console.error("Failed to fetch similar TV shows", err);
       } finally {
-        if (isMounted) setSimilarLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-
-    fetchSimilarTvShows();
-
+    fetchSimilar();
     return () => {
       isMounted = false;
     };
   }, [id]);
 
   return (
-    <article className="flex flex-col gap-4">
-      <h4 className="popular-shows text-3xl">You might also like</h4>
+    <UniversalCarousel
+      title="You might also like"
+      items={shows}
+      loading={loading}
+      renderItem={(show) => {
+        const isInWatchLater = watchLater.some((s) => s.id === show.id);
+        const isWishlisted = isInWishlist(show.id, "show");
 
-      {similarLoading && (
-        <p className="text-gray-400 mt-6">Loading similar TV Shows...</p>
-      )}
+        return (
+          <motion.div
+            key={show.id}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 260 }}
+            className="shrink-0"
+          >
+            <Link
+              to={`/tvshow/${show.id}`}
+              onClick={() =>
+                addToHistory({
+                  id: show.id,
+                  title: show.name || show.title,
+                  poster_path: show.poster_path,
+                  vote_average: show.vote_average,
+                  type: "show",
+                })
+              }
+              className="group block"
+            >
+              <div className="relative w-48">
+                <BlurImage
+                  src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
+                  alt={show.name || show.title}
+                  className="w-full h-67.5 rounded shadow-md"
+                />
 
-      {!similarLoading && similar.length === 0 && (
-        <p className="text-gray-500 mt-6">No similar TV Shows found.</p>
-      )}
+                {/* Watch Later */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!user) return navigate("/signin");
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center">
-        {similar.slice(0, 12).map((show) => {
-          if (!show.poster_path) return null;
-
-          const isInWatchLater = watchLater.some((m) => m.id === show.id);
-
-          return (
-            <div key={show.id} className="relative group w-50">
-              <Link
-                onClick={() =>
-                  addToHistory({
-                    id: show.id,
-                    title: show.name || show.title,
-                    poster_path: show.poster_path,
-                    vote_average: show.vote_average,
-                    type: "shows",
-                  })
-                }
-                to={`/tvshow/${show.id}`}
-                className="no-underline block cursor-pointer"
-              >
-                <div>
-                  <img
-                    src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
-                    alt={show.name || show.title}
-                    className="w-50 h-75 rounded shadow-md object-cover"
+                    isInWatchLater
+                      ? removeFromWatchLater(show.id)
+                      : addToWatchLater(show);
+                  }}
+                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
+                >
+                  <FontAwesomeIcon
+                    icon={isInWatchLater ? faDeleteLeft : faClock}
                   />
-                  <h5 className="w-50 px-2 text-center mt-2">
-                    {show.name || show.title}
-                  </h5>
-                </div>
-              </Link>
+                </button>
 
-              {/* Watch Later Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // prevent navigation
-                  isInWatchLater
-                    ? removeFromWatchLater(show.id)
-                    : addToWatchLater(show);
-                }}
-                className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
-                 opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
-              >
-                {isInWatchLater ? <FontAwesomeIcon icon={faDeleteLeft} /> : <FontAwesomeIcon icon={faClock} />}
-              </button>
+                {/* Wishlist */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!user) return navigate("/signin");
 
-              {/* Rating badge */}
-              <span className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 z-10">
-                ★ {show.vote_average?.toFixed(1) ?? "N/A"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </article>
+                    isWishlisted
+                      ? removeFromWishlist(show.id, "show")
+                      : addToWishlist({
+                          id: show.id,
+                          title: show.name || show.title,
+                          poster_path: show.poster_path,
+                          vote_average: show.vote_average,
+                          type: "show",
+                        });
+                  }}
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
+                >
+                  <FontAwesomeIcon
+                    icon={faHeart}
+                    style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}
+                  />
+                </button>
+
+                {/* Rating */}
+                <span className="absolute bottom-2 left-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+                  ★ {show.vote_average?.toFixed(1) ?? "N/A"}
+                </span>
+              </div>
+
+              <h5 className="mt-2 text-center text-sm truncate">
+                {show.name || show.title}
+              </h5>
+            </Link>
+          </motion.div>
+        );
+      }}
+    />
   );
 };
 
