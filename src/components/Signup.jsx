@@ -252,7 +252,7 @@ const Signup = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 focus:outline-none"
+                  className="absolute right-3 focus:outline-none cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -302,7 +302,7 @@ const Signup = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 focus:outline-none"
+                  className="absolute right-3 focus:outline-none cursor-pointer"
                   aria-label={
                     showConfirmPassword
                       ? "Hide confirm password"

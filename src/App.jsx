@@ -1,128 +1,156 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Overview from "./pages/Overview";
+
 import RootLayout from "./layouts/RootLayout";
-import Home from "./pages/Home";
-import Movies from "./pages/Movies";
-import NotFound from "./pages/NotFound";
-import Tvshows from "./pages/Tvshows";
-import MovieCard from "./movies/MovieCard";
-import TvShowCard from "./tvshows/TvShowCard";
+import DashboardLayout from "./layouts/DashboardLayout";
+import ProtectedRoute from "./routes/ProtectedRoute";
+
 import Signin from "./components/Signin";
 import Signup from "./components/Signup";
-import ProtectedRoute from "./routes/ProtectedRoute";
-import DashboardLayout from "./layouts/DashboardLayout";
-import DashboardOverview from "./dashboard/DashboardOverview";
-import Homepage from "./dashboard/Homepage";
-import History from "./dashboard/History";
-import Wishlist from "./dashboard/Wishlist";
-import Myreviews from "./dashboard/Myreviews";
-import WatchLater from "./dashboard/WatchLater";
+import NotFound from "./pages/NotFound";
 
-/**
- * React Router v6 Configuration - Recommended Movie Database App
- * ==================================================
- * Production-ready route structure with nested layouts, authentication,
- * and comprehensive 404 handling.
- *
- * Route Hierarchy:
- * ├── /                    → Overview (landing)
- * ├── RootLayout children:
- * │   ├── /home           → Home page
- * │   ├── /movies         → Movies grid
- * │   ├── /tvshows        → TV shows grid
- * │   ├── /signin         → Public auth
- * │   ├── /signup         → Public auth
- * │   └── Protected:
- * │       ├── /movie/:id  → Movie details (auth required)
- * │       └── /tvshow/:id → TV show details (auth required)
- * ├── Dashboard (separate auth):
- * │   └── /dashboard/*
- * └── *                   → Catch-all 404
- */
+/* --------------------------------------------------
+   ROUTER CONFIG (React Router v6.4+)
+-------------------------------------------------- */
 
-/**
- * Main Router Configuration
- * - Top-level routes with nested layouts
- * - ProtectedRoute wrappers for auth enforcement
- * - Comprehensive error boundaries
- * - Catch-all 404 at root level
- */
 const router = createBrowserRouter([
-  /**
-   * ROOT LANDING PAGE
-   * Public landing page - no layout wrapper
-   */
+  /* -------- LANDING PAGE -------- */
   {
     path: "/",
-    element: <Overview />,
+    lazy: async () => {
+      const { default: Overview } = await import("./pages/Overview");
+      return { Component: Overview };
+    },
   },
 
-  /**
-   * MAIN APP LAYOUT - Public + Protected Content
-   * Wraps most public pages + movie/tv details with RootLayout
-   */
+  /* -------- MAIN APP LAYOUT -------- */
   {
     element: <RootLayout />,
-    errorElement: <NotFound />, // Catches errors within this layout
+    errorElement: <NotFound />,
     children: [
-      { path: "home", element: <Home /> }, // Main home feed
-      { path: "movies", element: <Movies /> }, // Movies discovery
-      { path: "tvshows", element: <Tvshows /> }, // TV shows discovery
-      { path: "signin", element: <Signin /> }, // Public login
-      { path: "signup", element: <Signup /> }, // Public signup
+      {
+        path: "home",
+        lazy: async () => {
+          const { default: Home } = await import("./pages/Home");
+          return { Component: Home };
+        },
+      },
+      {
+        path: "movies",
+        lazy: async () => {
+          const { default: Movies } = await import("./pages/Movies");
+          return { Component: Movies };
+        },
+      },
+      {
+        path: "tvshows",
+        lazy: async () => {
+          const { default: Tvshows } = await import("./pages/Tvshows");
+          return { Component: Tvshows };
+        },
+      },
 
-      /**
-       * PROTECTED MOVIE/TV DETAIL PAGES
-       * Requires authentication via ProtectedRoute wrapper
-       */
+      /* -------- AUTH (PUBLIC) -------- */
+      { path: "signin", element: <Signin /> },
+      { path: "signup", element: <Signup /> },
+
+      /* -------- PROTECTED MOVIE / TV DETAILS -------- */
       {
         element: <ProtectedRoute />,
         children: [
-          { path: "movie/:id", element: <MovieCard /> }, // Dynamic movie details
-          { path: "tvshow/:id", element: <TvShowCard /> }, // Dynamic TV details
+          {
+            path: "movie/:id",
+            lazy: async () => {
+              const { default: MovieCard } = await import("./movies/MovieCard");
+              return { Component: MovieCard };
+            },
+          },
+          {
+            path: "tvshow/:id",
+            lazy: async () => {
+              const { default: TvShowCard } = await import(
+                "./tvshows/TvShowCard"
+              );
+              return { Component: TvShowCard };
+            },
+          },
         ],
       },
     ],
   },
 
-  /**
-   * DASHBOARD SECTION - Fully Protected
-   * Separate auth wrapper (outside RootLayout)
-   * User dashboard with nested navigation
-   */
+  /* -------- DASHBOARD (FULLY PROTECTED) -------- */
   {
     element: <ProtectedRoute />,
     children: [
       {
         path: "dashboard",
-        element: <DashboardLayout />, // Dashboard-specific layout
+        element: <DashboardLayout />,
         children: [
-          { index: true, element: <DashboardOverview /> }, // /dashboard
-          { path: "home", element: <Homepage /> }, // /dashboard/home
-          { path: "history", element: <History /> }, // /dashboard/history
-          { path: "watchlater", element: <WatchLater /> }, // /dashboard/watchlater
-          { path: "wishlist", element: <Wishlist /> }, // /dashboard/wishlist
-          { path: "myreviews", element: <Myreviews /> }, // /dashboard/myreviews
+          {
+            index: true,
+            lazy: async () => {
+              const { default: DashboardOverview } = await import(
+                "./dashboard/DashboardOverview"
+              );
+              return { Component: DashboardOverview };
+            },
+          },
+          {
+            path: "home",
+            lazy: async () => {
+              const { default: Homepage } = await import(
+                "./dashboard/Homepage"
+              );
+              return { Component: Homepage };
+            },
+          },
+          {
+            path: "history",
+            lazy: async () => {
+              const { default: History } = await import("./dashboard/History");
+              return { Component: History };
+            },
+          },
+          {
+            path: "watchlater",
+            lazy: async () => {
+              const { default: WatchLater } = await import(
+                "./dashboard/WatchLater"
+              );
+              return { Component: WatchLater };
+            },
+          },
+          {
+            path: "wishlist",
+            lazy: async () => {
+              const { default: Wishlist } = await import(
+                "./dashboard/Wishlist"
+              );
+              return { Component: Wishlist };
+            },
+          },
+          {
+            path: "myreviews",
+            lazy: async () => {
+              const { default: Myreviews } = await import(
+                "./dashboard/Myreviews"
+              );
+              return { Component: Myreviews };
+            },
+          },
         ],
       },
     ],
   },
 
-  /**
-   * CATCH-ALL 404 ROUTE
-   * Handles all unmatched routes app-wide
-   * Positioned LAST - critical for proper matching
-   */
+  /* -------- GLOBAL 404 -------- */
   {
     path: "*",
     element: <NotFound />,
   },
 ]);
 
-/**
- * App Component - Router Entry Point
- * Renders RouterProvider with complete route configuration
- */
+/* -------- APP ENTRY -------- */
 const App = () => {
   return <RouterProvider router={router} />;
 };

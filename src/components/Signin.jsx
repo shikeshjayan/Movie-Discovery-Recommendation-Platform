@@ -194,7 +194,7 @@ const Signin = () => {
                 <button
                   type="button"
                   onClick={toggleVisibility}
-                  className="absolute right-3 text-[#312F2C] focus:outline-none"
+                  className="absolute right-3 text-[#312F2C] focus:outline-none cursor-pointer"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
