@@ -43,7 +43,10 @@ const SearchResult = ({ movies, activeIndex, setActiveIndex, onClose }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ type: "spring", damping: 20, stiffness: 300 }}
-      className={`absolute top-full mt-5 left-1/2 transform -translate-x-1/2 sm:w-[60vw] max-w-md sm:max-w-lg backdrop-blur-lg rounded-b shadow-2xl max-h-80 overflow-y-auto
+      className={`absolute top-full mt-5 left-1/2 -translate-x-1/2
+  w-full max-w-[95vw] sm:max-w-150
+  backdrop-blur-lg rounded-b shadow-2xl
+  max-h-80 overflow-y-auto
         [&::-webkit-scrollbar]:w-2
         [&::-webkit-scrollbar-track]:bg-[#FAFAFA]
         [&::-webkit-scrollbar-thumb]:bg-[#FAFAFA]

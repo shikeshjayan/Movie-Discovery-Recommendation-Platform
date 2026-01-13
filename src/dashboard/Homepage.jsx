@@ -34,6 +34,8 @@ const Homepage = () => {
   const [currentPasswordInput, setCurrentPasswordInput] = useState("");
   const [passwordChanging, setPasswordChanging] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   // Success animation
   const [showSuccessAnim, setShowSuccessAnim] = useState(false);
 
@@ -68,6 +70,8 @@ const Homepage = () => {
     setModalMessage("Please enter your current password to confirm:");
     setModalOpen(true);
   };
+
+  const toggleVisibility = () => setShowPassword((prev) => !prev);
 
   const confirmPasswordChange = async () => {
     setPasswordChanging(true);
@@ -172,8 +176,9 @@ const Homepage = () => {
       </motion.div>
 
       {/* PROFILE SETTINGS */}
+      {/* PROFILE SETTINGS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* CHANGE USERNAME */}
+        {/* CHANGE USERNAME - Fixed: Removed password toggle logic */}
         <motion.div
           className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200"
           initial="hidden"
@@ -191,6 +196,7 @@ const Homepage = () => {
             placeholder="Enter new username"
             className="w-full p-3 rounded text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+
           <button
             onClick={handleUsernameChange}
             className="mt-3 w-full py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition-colors"
@@ -199,7 +205,7 @@ const Homepage = () => {
           </button>
         </motion.div>
 
-        {/* CHANGE PASSWORD */}
+        {/* CHANGE PASSWORD - Fixed: Added toggle logic and relative positioning */}
         <motion.div
           className="bg-gray-100 p-5 rounded shadow hover:shadow-lg transition-all duration-200"
           initial="hidden"
@@ -210,13 +216,32 @@ const Homepage = () => {
           <h3 className="text-lg font-semibold mb-4 text-blue-900">
             Change Password
           </h3>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter new password"
-            className="w-full p-3 rounded text-black focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              // Added pr-10 to prevent text from overlapping the eye icon
+              className="w-full p-3 rounded text-black focus:outline-none focus:ring-2 focus:ring-red-500 pr-10"
+            />
+
+            <button
+              type="button"
+              onClick={toggleVisibility}
+              // Positioned absolute relative to the input wrapper
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#312F2C] focus:outline-none cursor-pointer flex items-center justify-center"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <img src="/open-eye.png" alt="" className="w-5 h-5" />
+              ) : (
+                <img src="/closed-eye.png" alt="" className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
           <button
             onClick={handlePasswordChange}
             className="mt-3 w-full py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition-colors"

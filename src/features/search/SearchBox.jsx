@@ -1,130 +1,151 @@
 import { useEffect, useRef, useReducer } from "react";
+import { motion } from "framer-motion";
 import { fetchSearch } from "../../services/tmdbApi";
 import SearchResult from "./SearchResult";
-import { motion } from "framer-motion";
+import { useVoiceSearch } from "../../hooks/useVoiceSearch";
+import {
+  faMagnifyingGlass,
+  faMicrophone,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 /* -------------------- Reducer -------------------- */
 
-/**
- * Initial state for the search box
- * @property {string} inputValue - Current value in the input field
- * @property {Array} movies - List of search results
- * @property {number} activeIndex - Index of the currently highlighted result
- * @property {boolean} showResults - Whether the results dropdown is visible
- */
+// Initial state for the search feature
 const initialState = {
   inputValue: "",
   movies: [],
-  activeIndex: -1,
+  activeIndex: -1, // Tracks which result is highlighted via keyboard
   showResults: false,
 };
 
-/**
- * Reducer function to manage search box state
- * @param {Object} state - Current state
- * @param {Object} action - Action object with type and payload
- * @returns {Object} New state
- */
+// Reducer handles all state transitions for predictable updates
 function reducer(state, action) {
   switch (action.type) {
     case "SET_INPUT":
-      return {
-        ...state,
-        inputValue: action.payload,
-      };
+      return { ...state, inputValue: action.payload };
 
     case "SET_RESULTS":
       return {
         ...state,
         movies: action.payload,
         showResults: true,
-        activeIndex: -1,
+        activeIndex: -1, // Reset selection when new results arrive
       };
 
     case "SET_ACTIVE_INDEX":
-      return {
-        ...state,
-        activeIndex: action.payload,
-      };
+      return { ...state, activeIndex: action.payload };
 
     case "CLEAR":
-      return initialState;
+      return initialState; // Reset everything to default
 
     case "HIDE_RESULTS":
-      return {
-        ...state,
-        movies: [],
-        showResults: false,
-        activeIndex: -1,
-      };
+      return { ...state, movies: [], showResults: false, activeIndex: -1 };
 
     default:
       return state;
   }
 }
 
-/* -------------------- Component -------------------- */
+/* -------------------- Voice Wave Animation -------------------- */
 
-/**
- * SearchBox Component
- * Renders a search input with autocomplete dropdown.
- * Supports keyboard navigation (arrow keys, Enter, Escape) and click-to-navigate.
- */
+// Visual feedback component for voice input
+// Renders 3 bars that animate height when 'active' prop is true
+const VoiceWave = ({ active }) => (
+  <div className="flex gap-1 items-end h-4">
+    {[1, 2, 3].map((i) => (
+      <motion.span
+        key={i}
+        // Animate between heights to simulate a sound wave
+        animate={
+          active ? { height: ["20%", "100%", "30%"] } : { height: "20%" }
+        }
+        transition={{
+          repeat: active ? Infinity : 0, // Loop animation while active
+          duration: 0.6,
+          ease: "easeInOut",
+          delay: i * 0.1, // Stagger animation for wave effect
+        }}
+        className="w-1 bg-red-500 rounded"
+      />
+    ))}
+  </div>
+);
+
+/* -------------------- Main Component -------------------- */
+
 const SearchBox = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
-
   const { inputValue, movies, activeIndex, showResults } = state;
 
-  // Ref to track the latest request ID (prevents race conditions)
+  // Ref to track the latest API request ID
+  // Used to prevent "race conditions" (older slow requests overwriting newer ones)
   const requestIdRef = useRef(0);
 
-  /**
-   * Handles input change and triggers search
-   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
-   */
+  /* ---------- Voice Search Hook ---------- */
+
+  const { isListening, isSupported, startListening, stopListening } =
+    useVoiceSearch({
+      // Updates input as you speak (real-time feedback)
+      onResult: (text) => {
+        dispatch({ type: "SET_INPUT", payload: text });
+      },
+      // Triggers search only when you stop speaking
+      onFinalResult: async (text) => {
+        dispatch({ type: "SET_INPUT", payload: text });
+        const data = await fetchSearch(text);
+        dispatch({
+          type: "SET_RESULTS",
+          payload: data.results || data,
+        });
+      },
+      silenceTimeout: 2000, // Stop listening after 2s of silence
+    });
+
+  /* ---------- Input Change Handler ---------- */
+
   const handleInputChange = async (e) => {
+    // If user starts typing manually, stop voice recognition to avoid conflict
+    if (isListening) stopListening();
+
     const val = e.target.value;
     dispatch({ type: "SET_INPUT", payload: val });
 
+    // Only search if input has 2 or more characters
     if (val.trim().length > 1) {
+      // Increment request ID for this specific search attempt
       const currentRequestId = ++requestIdRef.current;
 
-      try {
-        const data = await fetchSearch(val);
+      const data = await fetchSearch(val);
 
-        // Only update results if this is the latest request
-        if (currentRequestId === requestIdRef.current) {
-          dispatch({
-            type: "SET_RESULTS",
-            payload: data.results || data,
-          });
-        }
-      } catch (error) {
-        console.error("Search failed", error);
+      // RACE CONDITION CHECK:
+      // Only update state if this response matches the LATEST request.
+      // If the user typed more while this fetch was happening, requestIdRef.current
+      // would have incremented, and this block will be skipped.
+      if (currentRequestId === requestIdRef.current) {
+        dispatch({
+          type: "SET_RESULTS",
+          payload: data.results || data,
+        });
       }
     } else {
+      // Clear results if input is too short
       dispatch({ type: "HIDE_RESULTS" });
     }
   };
 
-  /**
-   * Clears the search input and hides results
-   */
-  const clearSearch = () => {
-    dispatch({ type: "CLEAR" });
-  };
+  /* ---------- Keyboard Navigation ---------- */
 
-  /**
-   * Handles keyboard navigation and selection
-   * @param {React.KeyboardEvent} e - Keyboard event
-   */
   const handleKeyDown = (e) => {
+    // Ignore keys if results aren't visible
     if (!showResults || movies.length === 0) return;
 
     switch (e.key) {
       case "ArrowDown":
-        e.preventDefault();
+        e.preventDefault(); // Prevent cursor moving in input
         dispatch({
           type: "SET_ACTIVE_INDEX",
+          // Loop back to top if at bottom, otherwise go down
           payload: activeIndex < movies.length - 1 ? activeIndex + 1 : 0,
         });
         break;
@@ -133,6 +154,7 @@ const SearchBox = () => {
         e.preventDefault();
         dispatch({
           type: "SET_ACTIVE_INDEX",
+          // Loop to bottom if at top, otherwise go up
           payload: activeIndex > 0 ? activeIndex - 1 : movies.length - 1,
         });
         break;
@@ -141,18 +163,18 @@ const SearchBox = () => {
         e.preventDefault();
         if (activeIndex >= 0) {
           const item = movies[activeIndex];
+          // Navigate based on media type
           const route =
             item.media_type === "tv"
               ? `/tvshow/${item.id}`
               : `/movie/${item.id}`;
-
           window.location.href = route;
-          clearSearch();
+          dispatch({ type: "CLEAR" });
         }
         break;
 
       case "Escape":
-        clearSearch();
+        dispatch({ type: "CLEAR" });
         break;
 
       default:
@@ -160,62 +182,64 @@ const SearchBox = () => {
     }
   };
 
-  // Reset activeIndex whenever movies list changes
+  // Reset keyboard selection whenever the movie list changes
   useEffect(() => {
     dispatch({ type: "SET_ACTIVE_INDEX", payload: -1 });
   }, [movies]);
 
+  /* -------------------- JSX Render -------------------- */
+
   return (
     <motion.div
-      initial={{ scale: 0.2, opacity: 0 }}
+      initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      whileFocus={{
-        scale: 1.02,
-        boxShadow: "0 10px 30px rgba(0,116,224,0.3)",
-        border: "2px solid #0073ff",
-      }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className="w-200 relative flex flex-col items-center max-w-md z-50"
+      transition={{ duration: 0.5 }}
+      className="relative w-full sm:w-105 md:w-125 z-50"
     >
-      <form className="md:w-full relative" onSubmit={(e) => e.preventDefault()}>
-        <motion.input
-          whileHover={{
-            borderColor: "#0073ff",
-            boxShadow: "0 5px 20px rgba(0,116,224,0.15)",
-          }}
-          whileFocus={{
-            scale: 1.03,
-            letterSpacing: "-0.5px",
-          }}
-          whileTap={{ scale: 0.98 }}
-          style={{ paddingInline: "2.5rem" }}
+      <form onSubmit={(e) => e.preventDefault()} className="relative">
+        <input
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           type="text"
-          placeholder="Search for movies, shows..."
-          className="w-full h-10 border border-blue-900 rounded bg-transparent text-[#0073ff] focus:outline-none focus:ring-1 focus:ring-[#0073ff] placeholder-gray-400 text-sm caret-blue-500"
+          placeholder="Search movies, shows..."
+          className="w-full max-w-3xl h-10 pl-10 pr-16 rounded border border-blue-900 bg-transparent text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
 
-        {/* Search Icon */}
+        {/* Static Search Icon */}
         <span className="absolute left-3 top-2.5 text-gray-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <FontAwesomeIcon icon={faMagnifyingGlass} />
         </span>
+
+        {/* Dynamic Voice Wave Animation (only shows when listening) */}
+        {isListening && (
+          <div className="absolute right-12 top-3">
+            <VoiceWave active />
+          </div>
+        )}
+
+        {/* Microphone Toggle Button */}
+        <button
+          type="button"
+          onClick={isListening ? stopListening : startListening}
+          disabled={!isSupported}
+          aria-label={isListening ? "Stop voice search" : "Start voice search"}
+          aria-pressed={isListening}
+          role="switch"
+          className={`absolute right-3 top-2.5 ${
+            isListening ? "text-red-500" : "text-gray-400"
+          }`}
+        >
+          <FontAwesomeIcon icon={faMicrophone} />
+        </button>
+
+        {/* Hidden status for screen readers (Accessibility) */}
+        <div aria-live="polite" className="sr-only">
+          {isListening ? "Listening for voice input" : "Voice input stopped"}
+        </div>
       </form>
 
+      {/* Results Dropdown */}
       {showResults && (
         <SearchResult
           movies={movies}
@@ -223,7 +247,7 @@ const SearchBox = () => {
           setActiveIndex={(i) =>
             dispatch({ type: "SET_ACTIVE_INDEX", payload: i })
           }
-          onClose={clearSearch}
+          onClose={() => dispatch({ type: "CLEAR" })}
         />
       )}
     </motion.div>

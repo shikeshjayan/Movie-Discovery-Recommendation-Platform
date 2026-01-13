@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion"; // Add this import
+import { motion } from "framer-motion";
 import { ThemeContext } from "../context/ThemeProvider";
-
+import settingsDark from "../../public/settings.svg";
+import settingsLight from "../../public/settings_white.svg";
 const NotFound = () => {
   const navigate = useNavigate();
   const { theme } = useContext(ThemeContext);
@@ -37,8 +38,7 @@ const NotFound = () => {
         4
         <span className="relative">
           <img
-            src="/settings.svg"
-            alt=""
+            src={theme === "dark" ? settingsLight : settingsDark }
             className="w-20 h-20 md:w-32 md:h-32 animate-spin [animation-duration:2s]"
             aria-hidden="true"
           />

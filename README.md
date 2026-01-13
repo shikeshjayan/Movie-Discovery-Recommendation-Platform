@@ -1,13 +1,33 @@
-# 🎬 Recommeded Movie Database — Movie Discovery & Recommendation Platform
+# 🎬 Recommended Movie Database (RMDB)
 
-RMDB is a modern movie discovery web application built with **React** that allows users to explore movies, manage a personalized watchlist, track watch history, and share reviews.  
-It uses **TMDB API** for movie data and **Firebase** for authentication and real-time database features.
+RMDB is a modern **movie discovery and recommendation platform** built with **React (Vite)**.  
+It allows users to explore trending movies & TV shows, manage a personal wishlist, track watch history, and share reviews — all with a clean, responsive UI.
+
+Movie data is powered by the **TMDB API**, while **Firebase** handles authentication and secure real-time data storage.
 
 ---
 
 ## 🚀 Live Demo
 
-👉 _Add your deployed link here (Vercel / Netlify / Firebase Hosting)_
+👉 https://movie-discovery-recommendation-plat-xi.vercel.app/
+
+Hosted on **Vercel**
+
+---
+
+## 🖼️ Screenshots
+
+### 🏠 Home Page
+
+![Home](screenshots/home.png)
+
+### 🎬 Movie Details
+
+![Details](screenshots/details.png)
+
+### ❤️ Wishlist
+
+![Wishlist](screenshots/wishlist.png)
 
 ---
 
@@ -15,77 +35,77 @@ It uses **TMDB API** for movie data and **Firebase** for authentication and real
 
 ### Frontend
 
-- **React.js**
-- **React Router**
-- **Protected Routing**
-- **Context API**
-- **Axios**
-- **Tailwind CSS**
-- **Framer Motion** (Animations)
-- **Font Awesome Icons / icon8**
+- React.js (Vite)
+- React Router (Protected Routes)
+- Context API (Global State Management)
+- Axios
+- Tailwind CSS
+- Framer Motion (Animations)
+- Font Awesome / Icons8
 
-### Backend / Services
+### Backend & Services
 
-- **Firebase Authentication**
-- **Firebase Firestore**
-- **TMDB API**
+- Firebase Authentication (Email & Password)
+- Firebase Firestore
+- TMDB API
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
 ### 🔐 Authentication
 
-- User sign up & login using Firebase Authentication
-- Secure access to user-specific data
+- Firebase email & password authentication
+- Protected routes for authenticated users
+- User-specific data isolation
 
-### 🎥 Movie Discovery
+### 🎥 Movie & TV Discovery
 
-- Latest Movie
-- Latest TV Shows
-- Trending movies
-- Trending TV Shows
-- Upcoming movies
-- Movie details page
-- TV Shows details page
-- Movie Trailers
-- Search functionality (TMDB)
+- Trending Movies & TV Shows
+- Latest Movies
+- Upcoming Movies
+- Detailed Movie & TV Show pages
+- Official Trailers
+- TMDB-powered search
+- 🎤 Voice Search (Web Speech API – browser supported)
 
 ### ❤️ Wishlist (Watch Later)
 
 - Add movies to wishlist
-- Remove single movie from wishlist
+- Remove individual items
+- Data persisted per user
 
 ### 🕒 Watch History
 
-- Automatically track watched movies
-- Clear all history option
+- Automatically track watched content
 - Remove individual history items
+- Clear entire watch history
 
 ### 💬 Reviews & Comments
 
-- Logged-in users can add comments
+- Logged-in users can post reviews
 - Public read access
-- Secure write access using Firestore rules
+- Secure update & delete permissions
 
 ### 🎨 UI & UX
 
-- Responsive design
-- Smooth animations
-- Clean, modern UI
-- Dark / Light theme support
+- Fully responsive design
+- Smooth page & micro animations
+- Dark / Light theme toggle
+- Accessible keyboard navigation
 
 ---
 
 ## 🔒 Firestore Security Rules
 
-```js
+````js
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null &&
+        request.auth.uid == userId;
     }
 
     match /comments/{commentId} {
@@ -96,4 +116,31 @@ service cloud.firestore {
     }
   }
 }
-```
+
+
+
+## 🏁 Getting Started
+
+```bash
+# Clone the repository
+git clone https://github.com/shikeshjayan/Movie-Discovery-Recommendation-Platform.git
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+````
+
+## 🧰 Requirements
+
+- Node.js v24.11.0
+- npm
+
+## 👤 Author
+
+**Shikesh Jayan**  
+Full Stack Developer | React Enthusiast
+
+- GitHub: https://github.com/shikeshjayan
