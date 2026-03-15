@@ -15,7 +15,7 @@ const emailRule = yup
   .required("Email is required")
   .email("Please enter a valid email")
   .matches(
-    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|hotmail|outlook)$/i
+    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|hotmail|outlook)$/i,
   );
 
 const passwordRule = yup
@@ -26,11 +26,11 @@ const passwordRule = yup
   .max(50, "Password must be less than 50 characters") // optional max length
   .matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
-    "Password must contain uppercase, lowercase, number, and special character"
+    "Password must contain uppercase, lowercase, number, and special character",
   );
 
-// Signup schema
-export const signupSchema = yup.object({
+// Register schema (formerly signup)
+export const registerSchema = yup.object({
   name: nameRule,
   email: emailRule,
   password: passwordRule,
@@ -41,8 +41,8 @@ export const signupSchema = yup.object({
     .oneOf([yup.ref("password")], "Passwords do not match"),
 });
 
-// Signin schema
-export const signinSchema = yup.object({
+// Login schema (formerly signin)
+export const loginSchema = yup.object({
   email: emailRule,
   password: yup
     .string()

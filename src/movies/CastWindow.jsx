@@ -26,7 +26,7 @@ const CastWindow = () => {
         const data = await movieCast(id, { signal: controller.signal });
 
         const sortedCast = [...(data ?? [])].sort(
-          (a, b) => b.popularity - a.popularity
+          (a, b) => b.popularity - a.popularity,
         );
 
         setCast(sortedCast);
@@ -51,7 +51,9 @@ const CastWindow = () => {
       skeleton={<MediaSkeleton />}
       className="max-h-100"
       renderItem={(actor) => (
-        <div className="shrink-0 text-center snap-start mt-4">
+        <div
+          key={actor.cast_id}
+          className="shrink-0 text-center snap-start mt-4">
           <BlurImage
             src={
               actor.profile_path

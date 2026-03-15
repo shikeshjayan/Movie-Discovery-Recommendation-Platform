@@ -1,96 +1,150 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+  getWishlist,
+  addToWishlist as addToWishlistAPI,
+  removeFromWishlist as removeFromWishlistAPI,
+  clearWishlist as clearWishlistAPI,
+} from "../services/axiosApi";
+import { useAuth } from "./AuthContext";
 
-/**
- * WishlistContext
- * --------------------------------------------------
- * Manages wishlist items with localStorage persistence.
- * Supports multiple content types (movie / tv etc).
- */
 const WishlistContext = createContext(null);
 
-/**
- * WishlistProvider
- * --------------------------------------------------
- * Provides wishlist state and helper actions
- * to the application.
- */
 export const WishlistProvider = ({ children }) => {
-  /**
-   * Initialize wishlist from localStorage
-   * Wrapped in try/catch to avoid JSON parsing crashes
-   */
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      const stored = localStorage.getItem("wishlist");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  /**
-   * Persist wishlist to localStorage on every change
-   */
-  useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
-
-  /**
-   * Add item to wishlist
-   * - Prevents duplicates based on id + type
-   */
-  const addToWishlist = (item) => {
-    setWishlist((prev) => {
-      const exists = prev.some((i) => i.id === item.id && i.type === item.type);
-      return exists ? prev : [...prev, item];
-    });
+  const normalizeWishlistItem = (item) => {
+    const media = item.media || item;
+    return {
+      id: media.tmdbId || media.id,
+      tmdbId: media.tmdbId || media.id,
+      title: media.title || media.name || media.original_name,
+      poster_path: media.posterPath || media.poster_path,
+      backdrop_path: media.backdropPath || media.backdrop_path,
+      media_type: media.mediaType || media.media_type || "movie",
+      vote_average: media.voteAverage || media.vote_average,
+      overview: media.overview,
+      release_date:
+        media.releaseDate || media.release_date || media.first_air_date,
+      genres: media.genres,
+      addedAt: item.addedAt,
+    };
   };
 
-  /**
-   * Remove item from wishlist using id + type
-   */
-  const removeFromWishlist = (id, type) => {
-    setWishlist((prev) =>
-      prev.filter((item) => !(item.id === id && item.type === type))
+  const fetchWishlist = async () => {
+    if (!isAuthenticated) {
+      setWishlist([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await getWishlist();
+      let items = [];
+      if (Array.isArray(response)) {
+        items = response;
+      } else if (response && Array.isArray(response.data)) {
+        items = response.data;
+      }
+      setWishlist(items.map(normalizeWishlistItem));
+    } catch (error) {
+      console.error("Failed to fetch wishlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWishlist();
+  }, [isAuthenticated]);
+
+  const addToWishlistHandler = async (item) => {
+    if (!isAuthenticated) return;
+
+    const tmdbId = item.tmdbId || item.id;
+    const media_type = item.media_type || item.type || "movie";
+
+    const params = {
+      tmdbId: Number(tmdbId),
+      title: item.title || item.name,
+      poster_path: item.poster_path,
+      backdrop_path: item.backdrop_path,
+      media_type: media_type === "tvshow" ? "tv" : media_type,
+      overview: item.overview,
+      release_date: item.release_date || item.first_air_date,
+      vote_average: item.vote_average,
+      genres: item.genres,
+    };
+    try {
+      const res = await addToWishlistAPI(params);
+
+      // KEY FIX: Update local state based on the backend "action"
+      if (res.action === "removed") {
+        setWishlist((prev) =>
+          prev.filter((i) => Number(i.tmdbId) !== Number(params.tmdbId)),
+        );
+      } else if (res.action === "added") {
+        setWishlist((prev) => [normalizeWishlistItem(res.data), ...prev]);
+      }
+    } catch (error) {
+      console.error("Failed to toggle wishlist:", error);
+    }
+  };
+
+  const removeFromWishlistHandler = async (tmdbId, type) => {
+    if (!tmdbId) return;
+    if (isAuthenticated) {
+      try {
+        await removeFromWishlistAPI(tmdbId, type);
+        setWishlist((prev) =>
+          prev.filter((item) => Number(item.tmdbId) !== Number(tmdbId)),
+        );
+      } catch (error) {
+        console.error("Backend delete failed:", error);
+      }
+    }
+  };
+
+  const isInWishlist = (tmdbId, type) => {
+    const normalizedType = type === "tvshow" ? "tv" : type || "movie";
+    return wishlist.some(
+      (item) =>
+        Number(item.tmdbId) === Number(tmdbId) &&
+        item.media_type === normalizedType,
     );
   };
 
-  /**
-   * Check if item already exists in wishlist
-   */
-  const isInWishlist = (id, type) => {
-    return wishlist.some((item) => item.id === id && item.type === type);
+  const clearAll = async () => {
+    if (isAuthenticated) {
+      try {
+        await clearWishlistAPI();
+        setWishlist([]);
+      } catch (error) {
+        console.error("Failed to clear database:", error);
+      }
+    }
   };
 
-  /**
-   * Provide wishlist data and actions
-   */
   return (
     <WishlistContext.Provider
       value={{
         wishlist,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
+        loading,
+        addToWishlist: addToWishlistHandler,
         wishlistCount: wishlist.length,
-      }}
-    >
+        removeFromWishlist: removeFromWishlistHandler,
+        isInWishlist,
+        clearWishlist: clearAll,
+      }}>
       {children}
     </WishlistContext.Provider>
   );
 };
 
-/**
- * useWishlist
- * --------------------------------------------------
- * Custom hook to safely consume WishlistContext
- */
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
-
   if (!context) {
     throw new Error("useWishlist must be used inside WishlistProvider");
   }
-
   return context;
 };

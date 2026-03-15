@@ -1,19 +1,19 @@
 import { Link } from "react-router-dom";
-import { useHistory } from "../context/HistoryContext";
 import { useConfirmation } from "../hooks/useConfirmation";
 import ConfirmModal from "../ui/ConfirmModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 
 import UniversalCarousel from "../ui/UniversalCarousel";
 import BlurImage from "../ui/BlurImage";
 
 const WatchHistory = () => {
-  const { history, removeFromHistory, clearHistory } = useHistory();
+  const { history, removeFromHistory, clearHistory } = useWatchHistory();
   const { isOpen, pendingId, type, openSingle, openClear, close } =
     useConfirmation();
 
-  if (!history.length) return null;
+  if (!history || !history.length) return null;
 
   const confirmActionHandler = () => {
     if (type === "single") removeFromHistory(pendingId);
@@ -31,8 +31,7 @@ const WatchHistory = () => {
             height="24px"
             viewBox="0 -960 960 960"
             width="24px"
-            fill="#EA3323"
-          >
+            fill="#EA3323">
             <path d="m656-120-56-56 84-84-84-84 56-56 84 84 84-84 56 56-83 84 83 84-56 56-84-83-84 83Zm-176 0q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q11 0 20.5-.5T520-203v81q-10 1-19.5 1.5t-20.5.5ZM120-560v-240h80v94q51-64 124.5-99T480-840q150 0 255 105t105 255h-80q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120Zm414 190-94-94v-216h80v184l56 56-42 70Z" />
           </svg>
         </button>
@@ -41,11 +40,11 @@ const WatchHistory = () => {
       {/* Use UniversalCarousel */}
       <UniversalCarousel
         title="" // Already handled above
-        items={history}
+        items={[...history].reverse()}
         loading={false} // History loads instantly
         renderItem={(item) => (
           <div key={item.id} className="shrink-0 w-48 relative group">
-            <Link to={`/movie/${item.id}`} className="block">
+            <Link to={`/movie/${item.movieId}`} className="block">
               <BlurImage
                 src={`https://image.tmdb.org/t/p/w342${item.poster_path}`}
                 alt={item.name || item.original_name || item.title}
@@ -57,7 +56,7 @@ const WatchHistory = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  openSingle(item.id);
+                  openSingle(item.movieId);
                 }}
                 className="absolute top-2 right-2
                   bg-black/70 hover:bg-red-600
@@ -65,8 +64,7 @@ const WatchHistory = () => {
                   w-7 h-7
                   flex items-center justify-center
                   opacity-0 group-hover:opacity-100
-                  transition"
-              >
+                  transition">
                 <FontAwesomeIcon icon={faXmark} size="sm" />
               </button>
             </Link>

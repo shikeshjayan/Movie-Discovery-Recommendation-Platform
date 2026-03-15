@@ -1,11 +1,11 @@
 import { useAuth } from "../context/AuthContext";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import StatCard from "../dashboard/components/StatCard";
 import Recommendations from "./Recommendations";
 import Trending from "./Trending";
-import { useUserReviewCount } from "../hooks/useUserReviewCount";
+import { useReview } from "../context/ReviewContext";
 
 /**
  * DashboardOverview
@@ -15,9 +15,9 @@ import { useUserReviewCount } from "../hooks/useUserReviewCount";
 const DashboardOverview = () => {
   const { user } = useAuth();
   const { wishlistCount } = useWishlist();
-  const { historyCount } = useHistory();
+  const { historyCount } = useWatchHistory();
   const { watchLaterCount } = useWatchLater();
-  const reviewCount = useUserReviewCount(user?.uid);
+  const { reviewCount } = useReview();
 
   // Format display name from Firebase or email
   const formatEmailToName = (email) => {

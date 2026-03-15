@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Banner from "../tvshows/Banner";
 import GenreBar from "../tvshows/GenreBar";
 import ImageWithLoader from "../ui/ImageWithLoader";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useAuth } from "../context/AuthContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,8 +22,9 @@ const TVShows = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { addToHistory } = useHistory();
-  const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToHistory } = useWatchHistory();
+  const { watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater } =
+    useWatchLater();
 
   // -------------------- Fetch TV Shows --------------------
   useEffect(() => {
@@ -61,7 +62,7 @@ const TVShows = () => {
 
   const handleShowClick = (show) => {
     if (!user) {
-      navigate("/signin", {
+      navigate("/login", {
         state: {
           from: location.pathname,
           message: "Login required to view TV show details",
@@ -84,34 +85,33 @@ const TVShows = () => {
   // -------------------- Render --------------------
   return (
     <section className="py-5 flex flex-col gap-6">
+      {/* -------------------- Banner -------------------- */}
       <Banner />
+      {/* -------------------- Genre Selection -------------------- */}
       <GenreBar setGenre={handleGenreChange} />
-
+      {/* -------------------- Movies Grid -------------------- */}
       <h4 className="text-3xl px-4">TV Shows</h4>
 
       {loading && <p className="text-center">Loading...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       <div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-4"
-        role="list"
-      >
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4"
+        role="list">
         {tvShows.slice(0, 12).map((show) => {
           if (!show.poster_path) return null;
 
-          const isInWatchLater = watchLater.some((item) => item.id === show.id);
+          const isInWatchLaterFlag = isInWatchLater(show.id);
 
           return (
             <motion.div
               key={`${genre}-${show.id}`}
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 260 }}
-              role="listitem"
-            >
+              role="listitem">
               <button
                 onClick={() => handleShowClick(show)}
-                className="relative group text-left"
-              >
+                className="relative group text-left cursor-pointer">
                 <ImageWithLoader
                   src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
                   alt={show.name || show.title}
@@ -123,15 +123,14 @@ const TVShows = () => {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      isInWatchLater
+                      isInWatchLaterFlag
                         ? removeFromWatchLater(show.id)
-                        : addToWatchLater(show);
+                        : addToWatchLater(show, "tv");
                     }}
                     className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded
-                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                  >
+                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <FontAwesomeIcon
-                      icon={isInWatchLater ? faDeleteLeft : faClock}
+                      icon={isInWatchLaterFlag ? faDeleteLeft : faClock}
                     />
                   </button>
                 )}
@@ -155,8 +154,7 @@ const TVShows = () => {
           disabled={page === 1}
           whileTap={{ scale: 0.95 }}
           onClick={() => setPage((p) => Math.max(1, p - 1))}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
           Prev
         </motion.button>
 
@@ -168,8 +166,7 @@ const TVShows = () => {
           disabled={tvShows.length < 20}
           whileTap={{ scale: 0.95 }}
           onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
           Next
         </motion.button>
       </div>

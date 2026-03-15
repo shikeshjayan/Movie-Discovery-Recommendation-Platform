@@ -93,7 +93,7 @@ const ReviewWindow = () => {
             </div>
 
             {/* Review content */}
-            <p className="pl-10 mt-2">{review.content}</p>
+            <p className="pl-10 mt-2 text-sm">{review.content}</p>
           </div>
         );
       })}

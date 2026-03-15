@@ -1,75 +1,82 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { createContext, useContext, useState, useEffect } from "react";
+import apiClient from "../services/apiClient";
 
-/**
- * AuthContext
- * --------------------------------------------------
- * Holds authentication-related data and actions
- * (current user, logout function).
- */
-const AuthContext = createContext(null);
+export const AuthContext = createContext();
 
-/**
- * AuthProvider
- * --------------------------------------------------
- * Wraps the application and provides authentication
- * state to all child components.
- */
 export const AuthProvider = ({ children }) => {
-  // Stores the currently authenticated Firebase user
   const [user, setUser] = useState(null);
-
-  // Tracks whether Firebase auth state is still loading
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Subscribe to Firebase authentication state changes.
-   * This runs once on component mount.
-   */
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); // Set logged-in user (or null)
-      setLoading(false); // Stop loading after auth check
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
+    const checkUserLoggedIn = async () => {
+      try {
+        const response = await apiClient.get("/auth/me");
+        setUser(response.data);
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          setUser(null);
+          console.log("No active session found (Guest mode).");
+        } else {
+          console.error("Auth check failed:", error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUserLoggedIn();
   }, []);
 
-  /**
-   * Logs out the current user
-   */
-  const logout = async () => {
-    await signOut(auth);
-    setUser(null);
+  const login = async (credentials) => {
+    const res = await apiClient.post("/auth/login", credentials);
+
+    if (res.data) {
+      setUser(res.data);
+      return { success: true };
+    }
   };
 
-  /**
-   * Show loading screen while checking auth status
-   */
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        Loading...
-      </div>
-    );
-  }
+  // ✅ 3. Register function (new users)
+  const register = async (userData) => {
+    const res = await apiClient.post("/auth/register", userData);
+    if (res.data) {
+      setUser(res.data);
+      return { success: true };
+    }
+  };
 
-  /**
-   * Provide auth state and actions to the app
-   */
+  // ✅ 3. Logout function
+  const logout = async () => {
+    try {
+      await apiClient.post("/auth/logout");
+      setUser(null);
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, logout }}>
-      {children}
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        loading,
+        isAuthenticated: !!user,
+      }}
+    >
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
 
-/**
- * useAuth
- * --------------------------------------------------
- * Custom hook to access authentication context
- * anywhere in the application.
- */
-export const useAuth = () => useContext(AuthContext);
+// Custom hook for easy access
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

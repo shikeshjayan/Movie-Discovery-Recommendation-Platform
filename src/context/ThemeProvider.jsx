@@ -46,9 +46,9 @@ const ThemeProvider = ({ children }) => {
     };
   }, []);
 
-  /**
-   * Apply theme to HTML root and persist it
-   */
+   /**
+    * Apply theme to HTML root and persist it
+    */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);

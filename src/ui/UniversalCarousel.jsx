@@ -1,5 +1,9 @@
 import { useEffect, useRef } from "react";
 import MediaSkeleton from "../ui/MediaSkeleton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { useContext } from "react";
+import { ThemeContext } from "../context/ThemeProvider";
 
 /**
  * UniversalCarousel Component
@@ -32,11 +36,19 @@ const UniversalCarousel = ({
   autoScroll = true,
   scrollSpeed = 30,
 }) => {
-  // Ref to the scrollable container (the div with overflow-x-auto)
+  const { theme } = useContext(ThemeContext);
   const scrollRef = useRef(null);
-
-  // Ref to store the interval ID for auto-scrolling
   const intervalRef = useRef(null);
+
+  const scroll = (direction) => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const scrollAmount = container.clientWidth * 0.8;
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   /* ------------------------- Auto Scroll Logic ------------------------- */
   // Effect to handle auto-scrolling behavior
@@ -83,10 +95,32 @@ const UniversalCarousel = ({
   if (!items.length && !loading) return null;
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4 relative group">
       {/* Optional title */}
       {title && (
         <h4 className="my-2 pl-4 md:text-3xl font-semibold">{title}</h4>
+      )}
+
+      {/* Navigation Arrows */}
+      {!loading && items.length > 0 && (
+        <>
+          <button
+            onClick={() => scroll("left")}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity
+              ${theme === "dark" ? "bg-[#312F2C] text-[#ECF0FF] hover:bg-[#3d3a37]" : "bg-white text-[#312F2C] hover:bg-gray-100"}
+              hidden md:block`}
+            aria-label="Scroll left">
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity
+              ${theme === "dark" ? "bg-[#312F2C] text-[#ECF0FF] hover:bg-[#3d3a37]" : "bg-white text-[#312F2C] hover:bg-gray-100"}
+              hidden md:block`}
+            aria-label="Scroll right">
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        </>
       )}
 
       {/* Scrollable container */}

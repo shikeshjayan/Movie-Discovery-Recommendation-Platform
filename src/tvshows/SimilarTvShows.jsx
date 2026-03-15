@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { similarShows } from "../services/tmdbApi";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
@@ -18,8 +18,9 @@ const SimilarTvShows = () => {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const { addToHistory } = useHistory();
-  const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToHistory } = useWatchHistory();
+  const { watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater } =
+    useWatchLater();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
 
@@ -49,16 +50,15 @@ const SimilarTvShows = () => {
       items={shows}
       loading={loading}
       renderItem={(show) => {
-        const isInWatchLater = watchLater.some((s) => s.id === show.id);
-        const isWishlisted = isInWishlist(show.id, "show");
+        const isInWatchLaterFlag = isInWatchLater(show.id);
+        const isWishlisted = isInWishlist(show.id, "tv");
 
         return (
           <motion.div
             key={show.id}
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 260 }}
-            className="shrink-0"
-          >
+            className="shrink-0">
             <Link
               to={`/tvshow/${show.id}`}
               onClick={() =>
@@ -67,11 +67,11 @@ const SimilarTvShows = () => {
                   title: show.name || show.title,
                   poster_path: show.poster_path,
                   vote_average: show.vote_average,
-                  type: "show",
+                  media_type: "tv",
+                  type: "tv",
                 })
               }
-              className="group block"
-            >
+              className="group block">
               <div className="relative w-48">
                 <BlurImage
                   src={`https://image.tmdb.org/t/p/w342${show.poster_path}`}
@@ -84,16 +84,15 @@ const SimilarTvShows = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    if (!user) return navigate("/login");
 
-                    isInWatchLater
+                    isInWatchLaterFlag
                       ? removeFromWatchLater(show.id)
-                      : addToWatchLater(show);
+                      : addToWatchLater(show, "tv");
                   }}
-                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
-                    icon={isInWatchLater ? faDeleteLeft : faClock}
+                    icon={isInWatchLaterFlag ? faDeleteLeft : faClock}
                   />
                 </button>
 
@@ -102,20 +101,22 @@ const SimilarTvShows = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    if (!user) return navigate("/login");
 
                     isWishlisted
-                      ? removeFromWishlist(show.id, "show")
+                      ? removeFromWishlist(show.id, "tv")
                       : addToWishlist({
                           id: show.id,
+                          tmdbId: show.id,
                           title: show.name || show.title,
                           poster_path: show.poster_path,
+                          backdrop_path: show.backdrop_path,
                           vote_average: show.vote_average,
-                          type: "show",
+                          media_type: "tv",
+                          type: "tv",
                         });
                   }}
-                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
                     icon={faHeart}
                     style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}

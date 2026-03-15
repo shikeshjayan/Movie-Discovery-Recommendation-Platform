@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { recommendations } from "../services/tmdbApi";
 
 import UniversalCarousel from "../ui/UniversalCarousel";
@@ -11,14 +11,18 @@ import MediaSkeleton from "../ui/MediaSkeleton";
 const PLACEHOLDER_POSTER = "/placeholder.png";
 
 const Recommendations = () => {
-  const { history } = useHistory();
+  const { history } = useWatchHistory();
   const [recommendedMovies, setRecommendedMovies] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Use last 3 watched movies to fetch recommendations
   const recentMovieIds = useMemo(
-    () => history.slice(0, 3).map((m) => m.id),
-    [history]
+    () =>
+      history
+        .slice(0, 3)
+        .map((m) => m.movieId || m.id)
+        .filter(Boolean),
+    [history],
   );
 
   useEffect(() => {
@@ -31,7 +35,7 @@ const Recommendations = () => {
 
       try {
         const results = await Promise.all(
-          recentMovieIds.map((id) => recommendations(id))
+          recentMovieIds.map((id) => recommendations(id)),
         );
 
         // Flatten + dedupe movies by ID
@@ -40,8 +44,8 @@ const Recommendations = () => {
             results
               .flat()
               .filter(Boolean)
-              .map((movie) => [movie.id, movie])
-          ).values()
+              .map((movie) => [movie.id, movie]),
+          ).values(),
         );
 
         if (isMounted) setRecommendedMovies(uniqueMovies);
@@ -64,7 +68,7 @@ const Recommendations = () => {
       <h2 className="text-xl font-semibold mb-4">Recommended for You</h2>
 
       <UniversalCarousel
-        title="" // Already handled by the h2 above
+        title=""
         items={recommendedMovies}
         loading={loading}
         renderItem={(movie) => (
@@ -74,13 +78,11 @@ const Recommendations = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-          >
+            whileHover={{ scale: 1.05 }}>
             <Link
               to={`/movie/${movie.id}`}
               aria-label={`Go to movie details for ${movie.title}`}
-              className="block"
-            >
+              className="block">
               <BlurImage
                 src={
                   movie.poster_path

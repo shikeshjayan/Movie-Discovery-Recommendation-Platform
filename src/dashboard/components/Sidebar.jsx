@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthContext";
 import {
   faAlarmClock,
   faHeart,
@@ -5,12 +6,16 @@ import {
   faStar,
   faUser,
 } from "@fortawesome/free-regular-svg-icons";
-import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faClockRotateLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ThemeContext } from "../../context/ThemeProvider";
 import { motion } from "framer-motion";
+import SignOutModal from "../../ui/SignOutModal";
 
 /**
  * Sidebar
@@ -24,6 +29,21 @@ import { motion } from "framer-motion";
 const Sidebar = ({ open, setOpen }) => {
   const navigate = useNavigate();
   const { theme } = useContext(ThemeContext);
+
+  const { logout } = useAuth();
+
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // 3. Create a handler for the final logout action
+  const handleLogoutAction = async () => {
+    try {
+      await logout(); // Clears context and server session
+      setShowConfirm(false);
+      navigate("/login"); // Send them back to login
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   /**
    * Close sidebar when ESC key is pressed
@@ -79,15 +99,18 @@ const Sidebar = ({ open, setOpen }) => {
             ? "bg-blue-950 text-blue-100"
             : "bg-blue-100 text-blue-950"
         }
-      `}
-    >
+      `}>
+      <SignOutModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleLogoutAction}
+      />
       {/* Navigation */}
       <nav className="flex flex-col space-y-6 text-xl">
         <NavLink
           to="/dashboard"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faHouse} />
           </motion.div>
@@ -96,8 +119,7 @@ const Sidebar = ({ open, setOpen }) => {
         <NavLink
           to="/dashboard/home"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faUser} />
           </motion.div>
@@ -106,8 +128,7 @@ const Sidebar = ({ open, setOpen }) => {
         <NavLink
           to="/dashboard/wishlist"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faHeart} />
           </motion.div>
@@ -116,8 +137,7 @@ const Sidebar = ({ open, setOpen }) => {
         <NavLink
           to="/dashboard/history"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faClockRotateLeft} />
           </motion.div>
@@ -126,8 +146,7 @@ const Sidebar = ({ open, setOpen }) => {
         <NavLink
           to="/dashboard/myreviews"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faStar} />
           </motion.div>
@@ -136,8 +155,7 @@ const Sidebar = ({ open, setOpen }) => {
         <NavLink
           to="/dashboard/watchlater"
           className={navLinkClass}
-          onClick={() => setOpen(false)}
-        >
+          onClick={() => setOpen(false)}>
           <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faAlarmClock} />
           </motion.div>
@@ -148,8 +166,7 @@ const Sidebar = ({ open, setOpen }) => {
           {...iconMotion}
           aria-label="Exit Dashboard"
           onClick={() => navigate("/home")}
-          className="flex items-center justify-center p-2 rounded-lg"
-        >
+          className="flex items-center justify-center p-2 rounded-lg">
           <img
             src={
               theme === "dark"
@@ -158,6 +175,14 @@ const Sidebar = ({ open, setOpen }) => {
             }
             alt="Exit"
           />
+        </motion.button>
+
+        <motion.button
+          {...iconMotion}
+          aria-label="Sign Out"
+          onClick={() => setShowConfirm(true)}
+          className="p-2 rounded-lg">
+          <FontAwesomeIcon icon={faArrowLeft} className="text-red-500" />
         </motion.button>
       </nav>
     </aside>

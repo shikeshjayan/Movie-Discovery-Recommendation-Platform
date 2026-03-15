@@ -70,29 +70,25 @@ const Overview = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center text-white px-6"
-      >
+        className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center text-white px-6">
         {/* Subtitle */}
         <motion.p
           variants={itemVariants}
-          className="mb-4 text-sm sm:text-base tracking-widest uppercase text-blue-400"
-        >
+          className="mb-4 text-sm sm:text-base tracking-widest uppercase text-blue-400">
           Curated Movie Experience
         </motion.p>
 
         {/* Title */}
         <motion.h1
           variants={itemVariants}
-          className="mb-6 text-3xl sm:text-5xl lg:text-7xl font-extrabold leading-tight bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent"
-        >
+          className="mb-6 text-3xl sm:text-5xl lg:text-7xl font-extrabold leading-tight bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent">
           Welcome to Recommended Movie Database
         </motion.h1>
 
         {/* Description */}
         <motion.p
           variants={itemVariants}
-          className="mb-12 lg:max-w-2xl lg:text-lg sm:text-xl text-gray-300 leading-relaxed"
-        >
+          className="mb-12 lg:max-w-2xl lg:text-lg sm:text-xl text-gray-300 leading-relaxed">
           Discover expertly recommended movies and shows — personalized,
           unlimited, and always available.
         </motion.p>
@@ -100,44 +96,39 @@ const Overview = () => {
         {/* CTA Buttons */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-5 w-full max-w-md"
-        >
-          {/* Sign In Button */}
+          className="flex flex-col sm:flex-row gap-5 w-full max-w-md">
+          {/* Login Button */}
           <motion.div
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"
-            className="w-full"
-          >
+            className="w-full">
             <Link
-              to="/signin"
+              to="/login"
               aria-label="Login to your account"
               className="block w-full rounded-md px-8 py-4 text-lg font-semibold text-white 
                          bg-linear-to-r from-blue-600 to-blue-700
                          hover:from-blue-700 hover:to-blue-800
-                         transition-all duration-300 shadow-lg text-center"
-            >
-              Sign In
+                         transition-all duration-300 shadow-lg text-center">
+              Login
             </Link>
           </motion.div>
 
-          {/* Sign Up Button */}
+          {/* Register Button */}
           <motion.div
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"
-            className="w-full"
-          >
+            className="w-full">
             <Link
-              to="/signup"
+              to="/register"
               aria-label="Create a new account"
               className="block w-full rounded-md px-8 py-4 text-lg font-semibold text-white 
                          bg-white/10 backdrop-blur-md
                          hover:bg-white/20
                          border border-white/20
-                         transition-all duration-300 shadow-lg text-center"
-            >
-              Create Account
+                         transition-all duration-300 shadow-lg text-center">
+              Register
             </Link>
           </motion.div>
         </motion.div>

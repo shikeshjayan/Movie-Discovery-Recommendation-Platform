@@ -71,7 +71,7 @@ const ReviewWindow = () => {
             <div className="pl-10 pt-4 italic text-sm">
               {new Date(review.created_at).toLocaleDateString()}
             </div>
-            <p className="pl-10 mt-2">{review.content}</p>
+            <p className="pl-10 mt-2 text-sm">{review.content}</p>
           </div>
         );
       })}

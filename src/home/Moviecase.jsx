@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { popularMovies } from "../services/tmdbApi";
 import { Link, useNavigate } from "react-router-dom";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
@@ -17,8 +17,9 @@ const Moviecase = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { addToHistory } = useHistory();
-  const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToHistory } = useWatchHistory();
+  const { addToWatchLater, removeFromWatchLater, isInWatchLater } =
+    useWatchLater();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ const Moviecase = () => {
       items={movies}
       loading={loading}
       renderItem={(movie) => {
-        const isInWatchLater = watchLater.some((m) => m.id === movie.id);
+        // use helper that normalizes stored items
+        const isInWatchLaterFlag = isInWatchLater(movie.id);
+
         const isWishlisted = isInWishlist(movie.id, "movie");
 
         return (
@@ -43,8 +46,7 @@ const Moviecase = () => {
             key={movie.id}
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 260 }}
-            className="shrink-0"
-          >
+            className="shrink-0">
             <Link
               to={`/movie/${movie.id}`}
               onClick={() =>
@@ -56,8 +58,7 @@ const Moviecase = () => {
                   type: "movie",
                 })
               }
-              className="group block"
-            >
+              className="group block">
               <div className="relative w-48">
                 <BlurImage
                   src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
@@ -68,19 +69,32 @@ const Moviecase = () => {
                 {/* Watch later */}
                 <button
                   onClick={(e) => {
+                    console.log("Clicked!");
                     e.preventDefault();
-                    e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    e.stopPropagation(); // Stops the <Link> from triggering
 
-                    isInWatchLater
-                      ? removeFromWatchLater(movie.id)
-                      : addToWatchLater(movie);
+                    if (!user) return navigate("/login");
+
+                    const movieId = Number(movie.id);
+
+                    if (isInWatchLaterFlag) {
+                      removeFromWatchLater(movieId);
+                    } else {
+                      // Ensure you pass the object correctly
+                      addToWatchLater(
+                        {
+                          movieId: movieId,
+                          title: movie.title,
+                          poster_path: movie.poster_path,
+                          vote_average: movie.vote_average,
+                        },
+                        "movie",
+                      );
+                    }
                   }}
-                  className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded
-                  opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  className="absolute z-10 top-2 left-2 bg-black/80 text-white p-2 rounded opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
-                    icon={isInWatchLater ? faDeleteLeft : faClock}
+                    icon={isInWatchLaterFlag ? faDeleteLeft : faClock}
                   />
                 </button>
 
@@ -89,7 +103,7 @@ const Moviecase = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    if (!user) return navigate("/login");
 
                     isWishlisted
                       ? removeFromWishlist(movie.id, "movie")
@@ -101,15 +115,15 @@ const Moviecase = () => {
                           type: "movie",
                         });
                   }}
-                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
                     icon={faHeart}
                     style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}
                   />
                 </button>
 
-                <span className="absolute bottom-2 left-2 bg-yellow-500 text-black
+                <span
+                  className="absolute bottom-2 left-2 bg-yellow-500 text-black
                 font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition">
                   ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
                 </span>

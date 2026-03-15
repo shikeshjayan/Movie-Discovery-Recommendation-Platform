@@ -57,7 +57,7 @@ export const movieVideos = async (id) => {
   const trailer = data?.results?.find(
     (vid) =>
       (vid.site === "YouTube" && vid.type === "Trailer") ||
-      vid.type === "Teaser"
+      vid.type === "Teaser",
   );
   return trailer ? trailer.key : null;
 };
@@ -67,13 +67,27 @@ export const showVideos = async (id) => {
   const trailer = data?.results?.find(
     (vid) =>
       (vid.site === "YouTube" && vid.type === "Trailer") ||
-      vid.type === "Teaser"
+      vid.type === "Teaser",
   );
   return trailer ? trailer.key : null;
 };
 
-export const similarMovies = (id) => fetchList(`/movie/${id}/similar`);
-export const similarShows = (id) => fetchList(`/tv/${id}/similar`);
+export const similarMovies = (id) => {
+  if (!id) {
+    console.warn("No movie ID provided to similarMovies()");
+    return Promise.resolve([]);
+  }
+  return fetchList(`/movie/${id}/similar`);
+};
+
+export const similarShows = (id) => {
+  if (!id) {
+    console.warn("No tv ID provided to similarShows()");
+    return Promise.resolve([]);
+  }
+  return fetchList(`/tv/${id}/similar`);
+};
+
 export const fetchSearch = (query) => fetchList("/search/multi", { query });
 export const fetchMoviesByGenre = (genre_id) =>
   fetchList("/discover/movie", { with_genres: genre_id });
@@ -92,7 +106,13 @@ export const tvCast = async (id) => {
 
 export const movieReviews = (id) => fetchList(`/movie/${id}/reviews`);
 export const tvReviews = (id) => fetchList(`/tv/${id}/reviews`);
-export const recommendations = (id) =>
-  fetchList(`/movie/${id}/recommendations`);
+export const recommendations = (id) => {
+  if (!id) {
+    console.warn("No movie ID provided to recommendations()");
+    return Promise.resolve([]);
+  }
+  return fetchList(`/movie/${id}/recommendations`);
+};
+
 export const trendingAll = (timeWindow = "day") =>
   fetchList(`/trending/all/${timeWindow}`);

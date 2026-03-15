@@ -30,16 +30,15 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
       />
 
       <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
         className={`absolute top-full right-0 mt-5 w-48 rounded-b shadow-lg py-2 z-50 font-sans text-s ${
           theme === "dark"
             ? "bg-[#312F2C] text-[#FAFAFA]"
             : "bg-[#ECF0FF] text-[#312F2C]"
-        }`}
-      >
+        }`}>
         {/* Profile & Settings (only if logged in) */}
         {user && (
           <>
@@ -48,8 +47,7 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
                 navigate("/dashboard");
                 onClose();
               }}
-              className="px-4 py-2 hover:text-[#0073ff] cursor-pointer"
-            >
+              className="px-4 py-2 hover:text-[#0073ff] cursor-pointer">
               My Space
             </div>
             <div
@@ -57,8 +55,7 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
                 navigate("dashboard/home");
                 onClose();
               }}
-              className="px-4 py-2 hover:text-[#0073ff] cursor-pointer"
-            >
+              className="px-4 py-2 hover:text-[#0073ff] cursor-pointer">
               Settings
             </div>
             <div className="border-t border-gray-100 my-1"></div>
@@ -71,7 +68,7 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
             if (user) {
               setShowSignOutModal(true); // Show confirmation modal
             } else {
-              navigate("/signin");
+              navigate("/login");
               onClose();
             }
           }}
@@ -79,8 +76,7 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
             user
               ? "text-[#e00000] hover:text-[#ff0000]"
               : "text-[#0064E0] hover:text-[#0073ff]"
-          }`}
-        >
+          }`}>
           {user ? "Logout" : "Login"}
         </div>
       </motion.div>

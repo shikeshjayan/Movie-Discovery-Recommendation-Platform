@@ -1,82 +1,27 @@
-import { useEffect, useReducer, useState } from "react";
-import {
-  collection,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { db } from "../services/firebase";
-import { useAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
+import { useReview } from "../context/ReviewContext";
 import CommentItem from "../ui/CommentItem";
 import ConfirmModal from "../ui/ConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
-/* ---------------- REDUCER ---------------- */
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_COMMENTS":
-      return action.payload;
-    case "REMOVE_COMMENT":
-      return state.filter((c) => c.id !== action.payload);
-    default:
-      return state;
-  }
-};
-/**
- * Myreviews Component
- * -------------------
- * Displays and manages the current user’s reviews (comments) from Firestore.
- * - Shows a loading spinner while fetching
- * - Shows “No reviews” state when empty
- * - Lists reviews with delete confirmation
- * - Updates a parent counter via `onReviewCountChange`
- */
+
 const Myreviews = ({ onReviewCountChange }) => {
   const { user } = useAuth();
-  const [comments, dispatch] = useReducer(reducer, []);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const { reviews, removeReview, updateReview, loading, error } = useReview();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
-  /* ---------------- FETCH USER COMMENTS ---------------- */
+  // notify parent when the number of reviews changes
   useEffect(() => {
-    if (!user) return;
-
-    const q = query(
-      collection(db, "comments"),
-      where("uid", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        dispatch({ type: "SET_COMMENTS", payload: data });
-        setLoading(false);
-
-        // Notify parent of count change
-        if (onReviewCountChange) onReviewCountChange(data.length);
-      },
-      (err) => {
-        console.error(err);
-        setError("Failed to load reviews");
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
+    if (onReviewCountChange) onReviewCountChange(reviews.length);
+  }, [reviews, onReviewCountChange]);
 
   /* ---------------- DELETE ACTION ---------------- */
+
   const confirmDelete = (id) => {
     setDeleteId(id);
     setConfirmOpen(true);
@@ -86,14 +31,12 @@ const Myreviews = ({ onReviewCountChange }) => {
     if (!deleteId) return;
 
     try {
-      await deleteDoc(doc(db, "comments", deleteId));
-      dispatch({ type: "REMOVE_COMMENT", payload: deleteId });
+      setDeleteError(null);
+      await removeReview(deleteId);
     } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Failed to delete review. Check your permissions.");
+      setDeleteError("Failed to delete the review. Please try again.");
     } finally {
       setConfirmOpen(false);
-      setDeleteId(null);
     }
   };
 
@@ -114,7 +57,7 @@ const Myreviews = ({ onReviewCountChange }) => {
           <p className="text-gray-500 text-sm">Manage your published reviews</p>
         </div>
         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-bold">
-          {comments.length}
+          {reviews.length}
         </span>
       </header>
 
@@ -125,29 +68,34 @@ const Myreviews = ({ onReviewCountChange }) => {
             Synchronizing reviews...
           </p>
         </div>
-      ) : comments.length === 0 ? (
+      ) : reviews.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"
-        >
+          className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
           <p className="text-gray-400 text-lg">No reviews found yet.</p>
         </motion.div>
       ) : (
         <div className="space-y-4">
           <AnimatePresence mode="popLayout">
-            {comments.map((comment) => (
+            {reviews.map((comment) => (
               <motion.div
-                key={comment.id}
+                key={comment._id}
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
-              >
+                exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}>
                 <CommentItem
                   comment={comment}
                   user={user}
-                  onDelete={() => confirmDelete(comment.id)}
+                  onDelete={() => confirmDelete(comment._id)}
+                  onUpdate={async (updatedFields) => {
+                    try {
+                      await updateReview(comment._id, updatedFields);
+                    } catch (error) {
+                      console.error("Update failed in MyReviews:", error);
+                    }
+                  }}
                 />
               </motion.div>
             ))}

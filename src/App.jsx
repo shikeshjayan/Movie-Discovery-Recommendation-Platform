@@ -2,10 +2,10 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import RootLayout from "./layouts/RootLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
-import ProtectedRoute from "./routes/ProtectedRoute";
+import {ProtectedRoute} from "./routes/ProtectedRoute";
 
-import Signin from "./components/Signin";
-import Signup from "./components/Signup";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import NotFound from "./pages/NotFound";
 
 /* --------------------------------------------------
@@ -50,8 +50,8 @@ const router = createBrowserRouter([
       },
 
       /* -------- AUTH (PUBLIC) -------- */
-      { path: "signin", element: <Signin /> },
-      { path: "signup", element: <Signup /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
 
       /* -------- PROTECTED MOVIE / TV DETAILS -------- */
       {
@@ -67,9 +67,8 @@ const router = createBrowserRouter([
           {
             path: "tvshow/:id",
             lazy: async () => {
-              const { default: TvShowCard } = await import(
-                "./tvshows/TvShowCard"
-              );
+              const { default: TvShowCard } =
+                await import("./tvshows/TvShowCard");
               return { Component: TvShowCard };
             },
           },
@@ -89,18 +88,16 @@ const router = createBrowserRouter([
           {
             index: true,
             lazy: async () => {
-              const { default: DashboardOverview } = await import(
-                "./dashboard/DashboardOverview"
-              );
+              const { default: DashboardOverview } =
+                await import("./dashboard/DashboardOverview");
               return { Component: DashboardOverview };
             },
           },
           {
             path: "home",
             lazy: async () => {
-              const { default: Homepage } = await import(
-                "./dashboard/Homepage"
-              );
+              const { default: Homepage } =
+                await import("./dashboard/Homepage");
               return { Component: Homepage };
             },
           },
@@ -114,27 +111,24 @@ const router = createBrowserRouter([
           {
             path: "watchlater",
             lazy: async () => {
-              const { default: WatchLater } = await import(
-                "./dashboard/WatchLater"
-              );
+              const { default: WatchLater } =
+                await import("./dashboard/WatchLater");
               return { Component: WatchLater };
             },
           },
           {
             path: "wishlist",
             lazy: async () => {
-              const { default: Wishlist } = await import(
-                "./dashboard/Wishlist"
-              );
+              const { default: Wishlist } =
+                await import("./dashboard/Wishlist");
               return { Component: Wishlist };
             },
           },
           {
             path: "myreviews",
             lazy: async () => {
-              const { default: Myreviews } = await import(
-                "./dashboard/Myreviews"
-              );
+              const { default: Myreviews } =
+                await import("./dashboard/Myreviews");
               return { Component: Myreviews };
             },
           },

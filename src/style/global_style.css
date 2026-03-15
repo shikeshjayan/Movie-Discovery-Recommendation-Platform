@@ -1,111 +1,64 @@
 @import "tailwindcss";
 
-/* ==========================================================================
-   CUSTOM CSS VARIABLES - Typography System
-   ========================================================================== */
 :root {
-    --primary-font: "Montserrat", sans-serif;
-    /* Headings & Titles */
-    --body-font: "Roboto", sans-serif;
-    /* Body text & paragraphs */
-    --brand-font: "Playfair", serif;
-    /* Hero titles & branding */
+  --primary-font: "Montserrat", sans-serif;
+  --body-font: "Roboto", sans-serif;
+  --brand-font: "Playfair", serif;
 }
 
-/* ==========================================================================
-   BASE LAYER - Global Reset & Typography
-   ========================================================================== */
 @layer base {
-
-    /* Universal Reset - Clean slate for all elements */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: var(--body-font);
-        /* Default body font */
-    }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--body-font);
+  }
 }
 
-/* ==========================================================================
-   LAYOUT - Full viewport utilities
-   ========================================================================== */
 html,
 body {
-    width: 100%;
-    /* Ensure full width rendering */
+  width: 100%;
 }
 
-/* ==========================================================================
-   OVERVIEW SECTION - Hero Landing Page Styling
-   ========================================================================== */
-/* Main container with background positioning */
 .overview {
-    position: relative;
-    min-height: 100vh;
-    /* Full viewport height */
-    width: 100%;
-    overflow: hidden;
-    /* Contain pseudo-elements */
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
 }
 
-/* 
- * Background Image Layer (Blur Effect)
- * Creates blurred cinematic backdrop
- */
 .overview::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* Full container coverage */
-    background: url("/over.jpg") no-repeat center center/cover;
-    filter: blur(8px);
-    /* Artistic blur effect */
-    transform: scale(1.05);
-    /* Prevent edge gaps */
-    z-index: 0;
-    /* Background layer */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/over.jpg") no-repeat center center/cover;
+  filter: blur(8px);
+  transform: scale(1.05);
+  z-index: 0;
 }
 
-/* 
- * Dark Overlay Layer 
- * Ensures text readability over blurred image
- */
 .overview::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* Full coverage */
-    background: rgba(0, 0, 0, 0.6);
-    /* 60% opacity dark overlay */
-    z-index: 1;
-    /* Above background, below content */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
 }
 
-/* 
- * Content Layer 
- * Keeps hero text sharp above blurred background
- */
 .overview .content {
-    position: relative;
-    z-index: 2;
-    /* Topmost layer - stays crisp */
+  position: relative;
+  z-index: 2;
 }
 
-/* ==========================================================================
-   TYPOGRAPHY SYSTEM - Font Families
-   ========================================================================== */
-/* Primary headings use bold, modern Montserrat */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-    font-family: var(--primary-font);
+  font-family: var(--primary-font);
 }
 
-/* Body text uses clean, readable Roboto */
 p {
-    font-family: var(--body-font);
+  font-family: var(--body-font);
 }

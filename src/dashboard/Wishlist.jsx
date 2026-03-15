@@ -45,8 +45,19 @@ const Wishlist = () => {
 
   const confirmRemove = () => {
     if (!selectedItem) return;
-    removeFromWishlist(selectedItem.id, selectedItem.type);
-    closeModal();
+
+    console.log("Selected Item Object:", selectedItem);
+
+    const id = selectedItem.tmdbId || selectedItem.id;
+    const type = selectedItem.media_type || selectedItem.type || "movie";
+
+    if (!id) {
+      console.error("Error: ID is undefined. Check your data structure.");
+      return;
+    }
+
+    removeFromWishlist(id, type);
+    setOpenModal(false);
   };
 
   return (
@@ -59,18 +70,20 @@ const Wishlist = () => {
           {wishlist.map((item) => {
             const title =
               item?.title || item?.name || item?.original_name || "Unknown";
+            const routeType = item.media_type === "tv" ? "tvshow" : "movie";
+            const tmdbId = item.tmdbId || item.id;
 
             return (
               <motion.div
-                key={`${item.id}-${item.type}`}
+                key={`${tmdbId}-${routeType}`}
                 role="button"
                 tabIndex={0}
                 aria-label={`Go to ${title}`}
                 onClick={() =>
                   navigate(
-                    item.type === "movie"
-                      ? `/movie/${item.id}`
-                      : `/tvshow/${item.id}`
+                    routeType === "movie"
+                      ? `/movie/${tmdbId}`
+                      : `/tvshow/${tmdbId}`,
                   )
                 }
                 onKeyDown={(e) =>
@@ -78,14 +91,13 @@ const Wishlist = () => {
                   navigate(
                     item.type === "movie"
                       ? `/movie/${item.id}`
-                      : `/tvshow/${item.id}`
+                      : `/tvshow/${item.id}`,
                   )
                 }
                 // Card hover animation
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.97 }}
-                className="group cursor-pointer"
-              >
+                className="group cursor-pointer">
                 {/* Poster Container */}
                 <div className="relative w-full aspect-2/3 overflow-hidden rounded-lg shadow-md">
                   <img
@@ -109,8 +121,7 @@ const Wishlist = () => {
                       w-7 h-7 flex items-center justify-center
                       rounded-full bg-red-600 text-white
                       shadow-md z-20
-                    "
-                  >
+                    ">
                     <FontAwesomeIcon icon={faXmark} size="sm" />
                   </motion.button>
                 </div>

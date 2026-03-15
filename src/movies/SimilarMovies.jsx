@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { similarMovies } from "../services/tmdbApi";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
@@ -19,8 +19,9 @@ const SimilarMovies = () => {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const { addToHistory } = useHistory();
-  const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { addToHistory } = useWatchHistory();
+  const { watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater } =
+    useWatchLater();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
 
@@ -50,7 +51,7 @@ const SimilarMovies = () => {
       items={movies}
       loading={loading}
       renderItem={(movie) => {
-        const isInWatchLater = watchLater.some((m) => m.id === movie.id);
+        const isInWatchLaterFlag = isInWatchLater(movie.id);
         const isWishlisted = isInWishlist(movie.id, "movie");
 
         return (
@@ -58,8 +59,7 @@ const SimilarMovies = () => {
             key={movie.id}
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 260 }}
-            className="shrink-0"
-          >
+            className="shrink-0">
             <Link
               to={`/movie/${movie.id}`}
               onClick={() =>
@@ -71,8 +71,7 @@ const SimilarMovies = () => {
                   type: "movie",
                 })
               }
-              className="group block"
-            >
+              className="group block">
               <div className="relative w-48">
                 <BlurImage
                   src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
@@ -85,17 +84,16 @@ const SimilarMovies = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    if (!user) return navigate("/login");
 
-                    isInWatchLater
+                    isInWatchLaterFlag
                       ? removeFromWatchLater(movie.id)
-                      : addToWatchLater(movie);
+                      : addToWatchLater(movie, "movie");
                   }}
                   className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded
-                  opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
-                    icon={isInWatchLater ? faDeleteLeft : faClock}
+                    icon={isInWatchLaterFlag ? faDeleteLeft : faClock}
                   />
                 </button>
 
@@ -104,7 +102,7 @@ const SimilarMovies = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!user) return navigate("/signin");
+                    if (!user) return navigate("/login");
 
                     isWishlisted
                       ? removeFromWishlist(movie.id, "movie")
@@ -116,8 +114,7 @@ const SimilarMovies = () => {
                           type: "movie",
                         });
                   }}
-                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition"
-                >
+                  className="absolute top-2 right-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition">
                   <FontAwesomeIcon
                     icon={faHeart}
                     style={{ color: isWishlisted ? "#FF0000" : "#FFFFFF" }}
@@ -127,8 +124,7 @@ const SimilarMovies = () => {
                 {/* Rating */}
                 <span
                   className="absolute bottom-2 left-2 bg-yellow-500 text-black
-                  font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition"
-                >
+                  font-bold text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition">
                   ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
                 </span>
               </div>

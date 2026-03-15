@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect } from "react";
 import ImageWithLoader from "../ui/ImageWithLoader";
 import TrailerButton from "../components/TrailerButton";
 import MediaDetailsSkeleton from "../ui/MediaDetailsSkeleton";
@@ -7,7 +8,12 @@ import useTvShowDetails from "../hooks/useTvShowDetails";
 import CastWindow from "./CastWindow";
 import ReviewWindow from "./ReviewWindow";
 import { useWishlist } from "../context/WishlistContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
+import { useWatchLater } from "../context/WatchLaterContext";
 import CommentBox from "../components/CommentBox";
+import { motion } from "framer-motion";
+import { faHeart, faClock, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /**
  * TvShowCard Component
@@ -18,14 +24,33 @@ import CommentBox from "../components/CommentBox";
  * - Genres & languages
  * - Overview
  * - Trailer button
- * - Wishlist toggle
+ * - Wishlist & Watch Later toggle
  * - Cast, reviews, comments, and similar shows
  */
 const TvShowCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { show: shows, showKey, loading } = useTvShowDetails(id);
+  
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToHistory } = useWatchHistory();
+  const { addToWatchLater, removeFromWatchLater, isInWatchLater } = useWatchLater();
+
+  // Automatically record history on mount
+  useEffect(() => {
+    if (shows && shows.id) {
+      addToHistory({
+        id: shows.id,
+        title: shows.name || shows.title,
+        poster_path: shows.poster_path,
+        backdrop_path: shows.backdrop_path,
+        vote_average: shows.vote_average,
+        media_type: "tv",
+        overview: shows.overview,
+        release_date: shows.first_air_date,
+      });
+    }
+  }, [shows]);
 
   // Show skeleton while loading or if show data is missing
   if (loading || !shows) {
@@ -45,7 +70,7 @@ const TvShowCard = () => {
     <section className="py-4">
       {/* Main details section */}
       <div className="relative w-full min-h-[90vh] text-white bg-gray-900 overflow-hidden">
-        {/* Close button (visible only on larger screens) */}
+        {/* Close button */}
         <button
           onClick={() => navigate(-1)}
           className="hidden sm:block text-red-500 py-2 rounded fixed z-10 right-6 top-30 hover:text-blue-600"
@@ -65,119 +90,144 @@ const TvShowCard = () => {
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 py-16 flex flex-col md:flex-row items-center md:items-start gap-10">
           {/* Poster */}
-          <div className="shrink-0 w-64 md:w-80 lg:w-96 rounded shadow-2xl overflow-hidden">
+          <motion.div 
+            className="shrink-0 w-64 md:w-80 lg:w-96 rounded shadow-2xl overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.5 }}
+          >
             <ImageWithLoader
               src={posterUrl}
               alt={shows.title || shows.name}
-              className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 shadow-2xl"
+              className="w-full h-full object-cover"
             />
-          </div>
+          </motion.div>
 
           {/* Show details */}
-          <div className="flex-1 flex flex-col gap-4 space-y-6 text-center md:text-left">
-            {/* Title + Wishlist button */}
-            <div>
-              <div className="flex flex-col md:flex-row gap-10 items-center">
-                <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-gray-400">
-                  {shows.title || shows.name}
-                </h1>
+          <div className="flex-1 flex flex-col gap-4 text-center md:text-left">
+            {/* Title & Actions */}
+            <div className="flex flex-col md:flex-row gap-10 items-center justify-center md:justify-start">
+              <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-gray-400">
+                {shows.name || shows.title}
+              </h1>
 
-                {/* Wishlist toggle */}
+              <div className="flex gap-4">
+                {/* Wishlist Toggle */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!shows.id) return;
-                    isInWishlist(shows.id, "shows")
-                      ? removeFromWishlist(shows.id, "shows")
+                    const showId = shows.id || shows.tmdbId;
+                    isInWishlist(showId, "tv")
+                      ? removeFromWishlist(showId, "tv")
                       : addToWishlist({
-                          id: shows.id,
+                          id: showId,
                           title: shows.name || shows.title,
                           poster_path: shows.poster_path,
                           vote_average: shows.vote_average,
-                          type: "shows",
+                          media_type: "tv",
                         });
                   }}
-                  className="ml-4 text-white rounded-full p-2 transition hover:scale-110"
-                  aria-label="Add to wishlist"
+                  className="text-white rounded-full p-2 transition hover:scale-110"
+                  title={isInWishlist(shows.id, "tv") ? "Remove from wishlist" : "Add to wishlist"}
                 >
-                  {isInWishlist(shows.id, "shows") ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="26px"
-                      viewBox="0 -960 960 960"
-                      width="26px"
-                      fill="#8B1A10"
-                    >
-                      <path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Z" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="26px"
-                      viewBox="0 -960 960 960"
-                      width="26px"
-                      fill="#e3e3e3"
-                    >
-                      <path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Z" />
-                    </svg>
-                  )}
+                  <FontAwesomeIcon
+                    icon={faHeart}
+                    className={
+                        isInWishlist(shows.id, "tv")
+                        ? "text-red-500"
+                        : "text-white"
+                    }
+                    size="lg"
+                  />
                 </button>
-              </div>
 
-              {/* Tagline */}
-              {shows.tagline && (
-                <p className="text-lg text-gray-400 italic mt-2">
-                  "{shows.tagline}"
-                </p>
+                {/* Watch Later Toggle */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const showId = shows.id || shows.tmdbId;
+                    if (isInWatchLater(showId)) {
+                        removeFromWatchLater(showId, "tv");
+                    } else {
+                        addToWatchLater({
+                            id: showId,
+                            title: shows.name || shows.title,
+                            poster_path: shows.poster_path,
+                            backdrop_path: shows.backdrop_path,
+                            vote_average: shows.vote_average,
+                            media_type: "tv",
+                            overview: shows.overview,
+                            release_date: shows.first_air_date,
+                            genres: shows.genres?.map(g => g.name)
+                        }, "tv");
+                    }
+                  }}
+                  className="text-white rounded-full p-2 transition hover:scale-110"
+                  title={isInWatchLater(shows.id) ? "Remove from Watch Later" : "Add to Watch Later"}
+                >
+                  <FontAwesomeIcon
+                    icon={faClock}
+                    className={
+                        isInWatchLater(shows.id) ? "text-blue-500" : "text-white"
+                    }
+                    size="lg"
+                  />
+                </button>
+
+                {/* Indicator for Watched (History) */}
+                <div className="text-green-500 p-2" title="Watched">
+                  <FontAwesomeIcon icon={faCheck} size="lg" />
+                </div>
+              </div>
+            </div>
+
+            {/* Tagline */}
+            {shows.tagline && (
+              <p className="text-lg text-gray-400 italic mt-2">
+                "{shows.tagline}"
+              </p>
+            )}
+
+            {/* Rating, year, runtime */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 items-center mt-2">
+              <span className="px-4 py-1 text-yellow-500 font-bold text-md">
+                ★ {shows.vote_average ? shows.vote_average.toFixed(1) : "N/A"}
+              </span>
+              {shows.first_air_date && (
+                <span className="px-3 py-1 text-gray-200 text-sm">
+                  {new Date(shows.first_air_date).getFullYear()}
+                </span>
+              )}
+              {shows.episode_run_time?.[0] && (
+                <span className="px-3 py-1 text-gray-200 text-sm">
+                  {shows.episode_run_time[0]} min/episode
+                </span>
               )}
             </div>
 
-            {/* Rating, year, runtime */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-3">
-              <span className="w-auto px-4 py-2 text-yellow-500 font-bold rounded-full">
-                ★ {shows.vote_average ? shows.vote_average.toFixed(1) : "N/A"}
-              </span>
-              <span className="w-auto px-4 py-2 text-gray-200 text-sm rounded-full">
-                {shows.first_air_date
-                  ? new Date(shows.first_air_date).getFullYear()
-                  : "TBA"}
-              </span>
-              <span className="w-auto px-4 py-2 text-gray-200 text-sm rounded-full">
-                {shows.episode_run_time?.[0]
-                  ? `${shows.episode_run_time[0]} min/episode`
-                  : "N/A"}
-              </span>
-            </div>
-
             {/* Genres */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-2">
+            <div className="flex flex-wrap justify-center md:justify-start gap-2 text-xs uppercase tracking-wide">
               {shows.genres?.map((g) => (
-                <span
-                  key={g.id}
-                  className="px-4 py-2 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
-                >
+                <span key={g.id} className="px-3 py-1 text-gray-300">
                   {g.name}
                 </span>
               ))}
             </div>
 
             {/* Languages */}
-            {shows.spoken_languages?.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {shows.spoken_languages.map((lang) => (
-                  <span
-                    key={lang.english_name}
-                    className="px-3 py-1 text-gray-300 text-xs uppercase tracking-wide rounded-full backdrop-blur-sm"
-                  >
-                    {lang.english_name}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
+              {shows.spoken_languages?.map((lang) => (
+                <span
+                  key={lang.name}
+                  className="px-3 py-1 text-gray-300 text-xs uppercase tracking-wide border border-gray-700 rounded"
+                >
+                  {lang.english_name}
+                </span>
+              ))}
+            </div>
 
             {/* Overview */}
-            <div className="max-w-2xl">
-              <h3 className="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2">
+            <div className="max-w-2xl mt-4">
+              <h3 className="text-xl font-semibold mb-2 text-gray-200">
                 Overview
               </h3>
               <p className="text-gray-300 leading-relaxed text-lg">
@@ -186,7 +236,7 @@ const TvShowCard = () => {
             </div>
 
             {/* Trailer button */}
-            <div className="flex gap-4 items-center justify-center md:justify-start">
+            <div className="flex gap-4 items-center justify-center md:justify-start mt-4">
               <TrailerButton movieKey={showKey} />
             </div>
           </div>
@@ -196,7 +246,6 @@ const TvShowCard = () => {
       {/* Cast section */}
       <CastWindow />
 
-      {/* Divider */}
       <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
 
       {/* Comments */}
@@ -206,17 +255,12 @@ const TvShowCard = () => {
         contentType="tv"
       />
 
-      {/* Divider */}
-      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
-
-      {/* Reviews */}
       <ReviewWindow />
+
+      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
 
       {/* Similar shows */}
       <SimilarTvShows />
-
-      {/* Final divider */}
-      <hr className="bg-linear-to-r from-blue-500 to-purple-500 h-px mx-4 my-8 opacity-75" />
     </section>
   );
 };

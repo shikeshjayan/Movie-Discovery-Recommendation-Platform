@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Banner from "../movies/Banner";
 import GenreBar from "../movies/GenreBar";
 import ImageWithLoader from "../ui/ImageWithLoader";
-import { useHistory } from "../context/HistoryContext";
+import { useWatchHistory } from "../context/WatchHistoryContext";
 import { useAuth } from "../context/AuthContext";
 import { useWatchLater } from "../context/WatchLaterContext";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
@@ -13,17 +13,18 @@ import { faDeleteLeft } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 
 const Movies = () => {
-  const { watchLater, addToWatchLater, removeFromWatchLater } = useWatchLater();
+  const { watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater } =
+    useWatchLater();
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
-  const { addToHistory } = useHistory();
+  const { addToHistory } = useWatchHistory();
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // Navigate to movie details and add to history
   const handleMovieClick = (movie) => {
     if (!user) {
-      navigate("/signin", {
+      navigate("/login", {
         state: { from: `/movie/${movie.id}` },
         replace: true,
       });
@@ -76,12 +77,11 @@ const Movies = () => {
       <div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 justify-items-center px-4"
         role="list"
-        aria-label="Movies list"
-      >
+        aria-label="Movies list">
         {movies.slice(0, 12).map((movie) => {
           if (!movie.poster_path) return null;
 
-          const isInWatchLater = watchLater.some((m) => m.id === movie.id);
+          const isInWatchLaterFlag = isInWatchLater(movie.id);
 
           return (
             <motion.div
@@ -90,12 +90,10 @@ const Movies = () => {
               transition={{ type: "spring", stiffness: 260 }}
               className="shrink-0"
               role="listitem"
-              aria-label={`Movie: ${movie.title || movie.name}`}
-            >
+              aria-label={`Movie: ${movie.title || movie.name}`}>
               <div
                 onClick={() => handleMovieClick(movie)}
-                className="relative group cursor-pointer"
-              >
+                className="relative group cursor-pointer">
                 {/* Movie Poster */}
                 <ImageWithLoader
                   src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
@@ -111,9 +109,9 @@ const Movies = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent navigation
-                      isInWatchLater
+                      isInWatchLaterFlag
                         ? removeFromWatchLater(movie.id)
-                        : addToWatchLater(movie);
+                        : addToWatchLater(movie, "movie");
                     }}
                     aria-label={
                       isInWatchLater
@@ -121,9 +119,8 @@ const Movies = () => {
                         : `Add ${movie.title} to watch later`
                     }
                     className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-sm
-                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer"
-                  >
-                    {isInWatchLater ? (
+                  opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 ease-in-out cursor-pointer">
+                    {isInWatchLaterFlag ? (
                       <FontAwesomeIcon icon={faDeleteLeft} />
                     ) : (
                       <FontAwesomeIcon icon={faClock} />
@@ -134,8 +131,7 @@ const Movies = () => {
                 {/* Rating Badge */}
                 <span
                   className="absolute top-2 right-2 bg-yellow-500 text-black font-bold text-sm px-3 py-1 rounded
-                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
-                >
+                    opacity-100 lg:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                   ★ {movie.vote_average?.toFixed(1) ?? "N/A"}
                 </span>
 
@@ -163,8 +159,7 @@ const Movies = () => {
               page === 1
                 ? "opacity-50 cursor-not-allowed bg-gray-800 border-gray-700 text-gray-500"
                 : "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
+            }`}>
             Prev
           </motion.button>
 
@@ -179,8 +174,7 @@ const Movies = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => setPage((prev) => prev + 1)}
             aria-label="Next page"
-            className="px-4 py-2 rounded border bg-blue-600 border-blue-600 text-white hover:bg-blue-700 transition-colors"
-          >
+            className="px-4 py-2 rounded border bg-blue-600 border-blue-600 text-white hover:bg-blue-700 transition-colors">
             Next
           </motion.button>
         </div>

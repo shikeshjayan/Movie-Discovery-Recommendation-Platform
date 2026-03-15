@@ -30,11 +30,11 @@ const Footer = () => {
           <NavLink to="/home">Home</NavLink>
           <NavLink to="/movies">Movies</NavLink>
           <NavLink to="/tvshows">TV Shows</NavLink>
-          <span className="text-blue-950">|</span>
+          <span className={theme === "dark" ? "text-[#FAFAFA]/30" : "text-[#312F2C]/30"}>|</span>
           <NavLink to="/dashboard/home">Dashboard</NavLink>
         </ul>
 
-        <hr className="text-blue-950 w-full h-2" />
+        <hr className={`w-full h-2 ${theme === "dark" ? "border-[#FAFAFA]/20" : "border-[#312F2C]/20"}`} />
 
         {/* Copyright */}
         <div>© 2026 RMDB. All Rights Reserved.</div>

@@ -1,168 +1,119 @@
-import { useContext, useEffect, useReducer, useState } from "react";
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-  serverTimestamp,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { db } from "../services/firebase";
+import { useContext, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useReview } from "../context/ReviewContext";
 import ConfirmModal from "../ui/ConfirmModal";
 import CommentItem from "../ui/CommentItem";
 import { ThemeContext } from "../context/ThemeProvider";
-
-/* ---------------- REDUCER ---------------- */
-
-/**
- * Reducer to manage comments list
- * @param {Array} state - Current comments array
- * @param {Object} action - Action object
- * @returns {Array} New comments array
- */
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_COMMENTS":
-      return action.payload;
-    default:
-      return state;
-  }
-};
+import { getMovieReviewsService } from "../services/axiosApi";
 
 /**
  * CommentBox Component
- * Renders a comment/review section for a movie/TV show.
- * - Shows existing comments
- * - Allows logged-in users to post a comment with rating
- * - Allows comment deletion with confirmation
- *
- * @param {string} contentId - ID of the movie/TV show
- * @param {string} contentTitle - Title of the movie/TV show
- * @param {string} contentType - Type ("movie" or "tv")
+ * Renders a real-time review section connected to MongoDB.
  */
-const CommentBox = ({ contentId, contentTitle, contentType }) => {
+const CommentBox = ({ contentId, contentType }) => {
   const { user } = useAuth();
   const { theme } = useContext(ThemeContext);
+  const { addReview, removeReview, hasReviewed, updateReview } = useReview();
 
   // State
-  const [comments, dispatch] = useReducer(reducer, []);
+  const [comments, setComments] = useState([]);
   const [form, setForm] = useState({ text: "", rating: 0 });
   const [loading, setLoading] = useState(true);
-
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [error, setError] = useState(null);
+
+  const showError = (msg) => {
+    setError(msg);
+    setTimeout(() => setError(null), 3000);
+  };
 
   /* ---------------- FETCH COMMENTS ---------------- */
-
-  // Subscribe to comments for this content
   useEffect(() => {
-    if (!contentId || !contentType) return;
-
-    setLoading(true);
-
-    const q = query(
-      collection(db, "comments"),
-      where("contentId", "==", contentId),
-      where("contentType", "==", contentType),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        dispatch({
-          type: "SET_COMMENTS",
-          payload: snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })),
-        });
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Fetch comments error:", error);
+    const fetchPublicReviews = async () => {
+      setLoading(true);
+      try {
+        const res = await getMovieReviewsService(contentId, contentType);
+        // Backend returns reviews with .populate("user")
+        setComments(res.data || []);
+      } catch (err) {
+        // If no reviews found (404), we just show an empty list
+        setComments([]);
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    if (contentId) fetchPublicReviews();
   }, [contentId, contentType]);
 
   /* ---------------- POST COMMENT ---------------- */
-
-  /**
-   * Handles form submission to post a new comment
-   * @param {React.FormEvent} e - Form submit event
-   */
   const postComment = async (e) => {
     e.preventDefault();
     if (!user || !form.text.trim() || form.rating === 0) return;
 
-    await addDoc(collection(db, "comments"), {
-      contentId,
-      contentTitle,
-      contentType,
-      uid: user.uid,
-      username: user.email.split("@")[0],
-      text: form.text,
-      rating: form.rating,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      const payload = {
+        movieId: contentId,
+        media_type: contentType,
+        rating: form.rating,
+        comment: form.text,
+      };
 
-    // Reset form
-    setForm({ text: "", rating: 0 });
+      const newReview = await addReview(payload);
+
+      // Update local UI list
+      setComments((prev) => [newReview, ...prev]);
+      setForm({ text: "", rating: 0 });
+      showError("Review posted successfully");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to post review");
+    }
   };
 
   /* ---------------- DELETE FLOW ---------------- */
-
-  /**
-   * Opens the delete confirmation modal
-   * @param {string} id - Comment ID to delete
-   */
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setConfirmOpen(true);
-  };
-
-  /**
-   * Deletes the comment from Firestore
-   */
   const handleDelete = async () => {
-    if (!deleteId) return;
-
-    await deleteDoc(doc(db, "comments", deleteId));
-    setConfirmOpen(false);
-    setDeleteId(null);
+    try {
+      await removeReview(deleteId);
+      setComments((prev) => prev.filter((c) => c._id !== deleteId));
+      showError("Review deleted successfully!");
+    } catch (err) {
+      showError("Could not delete review");
+    } finally {
+      setConfirmOpen(false);
+      setDeleteId(null);
+    }
   };
 
-  /* ---------------- UI ---------------- */
+  // Check if current user already reviewed this movie
+  const alreadyReviewed = hasReviewed(contentId, contentType);
 
   return (
     <section className="p-6">
       <h3
         className="text-xl font-semibold mb-6"
-        style={{ color: theme === "dark" ? "#FCFCF7" : "#171717" }}
-      >
+        style={{ color: theme === "dark" ? "#FCFCF7" : "#171717" }}>
         User Reviews
       </h3>
 
-      {/* COMMENT FORM */}
-      {user && (
+      {/* ERROR/SUCCESS TOAST */}
+      {error && (
+        <div className="mb-4 p-3 bg-blue-500 text-white rounded animate-pulse">
+          {error}
+        </div>
+      )}
+
+      {/* COMMENT FORM - Only show if logged in AND hasn't reviewed yet */}
+      {user && !alreadyReviewed ? (
         <form
           onSubmit={postComment}
-          className={`mb-8 space-y-4 p-6 rounded
-            ${theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"}
-          `}
-        >
+          className={`mb-8 space-y-4 p-6 rounded ${
+            theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"
+          }`}>
           <textarea
             value={form.text}
             onChange={(e) => setForm({ ...form, text: e.target.value })}
-            className={`w-full p-4 border-b field-sizing-content focus:outline-none placeholder:text-[#0064E0] ${
+            className={`w-full p-4 border-b bg-transparent focus:outline-none placeholder:text-[#0064E0] ${
               theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"
             }`}
             placeholder="Write a review..."
@@ -174,66 +125,73 @@ const CommentBox = ({ contentId, contentTitle, contentType }) => {
               onChange={(e) =>
                 setForm({ ...form, rating: Number(e.target.value) })
               }
-              className={`p-1 border rounded ${
+              className={`p-1 border rounded bg-transparent ${
                 theme === "dark" ? "text-[#FAFAFA]" : "text-[#312F2C]"
-              }`}
-            >
-              <option
-                className={`${
-                  theme === "dark"
-                    ? "bg-[#312F2C] text-[#FAFAFA]"
-                    : "bg-[#ECF0FF] text-[#312F2C]"
-                }`}
-                value={0}
-              >
-                ☆
-              </option>
+              }`}>
+              <option value={0}>☆</option>
               {[1, 2, 3, 4, 5].map((r) => (
-                <option
-                  className={`${
-                    theme === "dark"
-                      ? "bg-[#312F2C] text-[#FAFAFA]"
-                      : "bg-[#ECF0FF] text-[#312F2C]"
-                  }`}
-                  key={r}
-                  value={r}
-                >
+                <option key={r} value={r} className="text-black">
                   {r} ★
                 </option>
               ))}
             </select>
 
             <button
+              type="submit"
               disabled={!form.text.trim() || form.rating === 0}
-              className="px-2 py-2 bg-[#0064E0] text-[#FCFCF7] hover:bg-[#0073ff] rounded disabled:bg-gray-400"
-            >
-              Comment
+              className="px-4 py-2 bg-[#0064E0] text-[#FCFCF7] hover:bg-[#0073ff] rounded disabled:bg-gray-400 transition-colors">
+              Post Review
             </button>
           </div>
         </form>
+      ) : user && alreadyReviewed ? (
+        <div className="mb-8 p-4 bg-gray-100 dark:bg-gray-800 rounded italic text-sm text-gray-500">
+          You have already submitted a review for this content.
+        </div>
+      ) : (
+        <div className="mb-8 p-4 border border-dashed rounded text-center text-gray-400">
+          Please log in to share your review.
+        </div>
       )}
 
       {/* COMMENTS LIST */}
       {loading ? (
-        <p className="text-center text-gray-400">Loading comments...</p>
+        <p className="text-center text-gray-400">Loading reviews...</p>
       ) : comments.length === 0 ? (
-        <p className="text-center text-gray-400">No reviews yet</p>
+        <p className="text-center text-gray-400 py-10">
+          No reviews yet. Be the first!
+        </p>
       ) : (
-        comments.map((c) => (
-          <CommentItem
-            key={c.id}
-            comment={c}
-            user={user}
-            onDelete={confirmDelete}
-          />
-        ))
+        <div className="space-y-6">
+          {comments.map((c) => (
+            <CommentItem
+              key={c._id}
+              comment={c}
+              user={user}
+              onDelete={() => {
+                setDeleteId(c._id);
+                setConfirmOpen(true);
+              }}
+              onUpdate={async (updateData) => {
+                try {
+                  const res = await updateReview(c._id, updateData);
+                  setComments((prev) =>
+                    prev.map((x) => (x._id === c._id ? res : x)),
+                  );
+                  showError("Review updated successfully");
+                } catch (error) {
+                  showError("Failed to update review");
+                }
+              }}
+            />
+          ))}
+        </div>
       )}
 
-      {/* CONFIRM MODAL */}
       <ConfirmModal
         open={confirmOpen}
-        title="Delete Comment"
-        message="This action cannot be undone."
+        title="Delete Review"
+        message="This action will permanently remove your review."
         onCancel={() => setConfirmOpen(false)}
         onConfirm={handleDelete}
       />

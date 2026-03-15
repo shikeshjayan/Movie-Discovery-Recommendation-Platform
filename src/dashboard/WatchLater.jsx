@@ -3,7 +3,7 @@ import { useWatchLater } from "../context/WatchLaterContext";
 import WatchLaterCard from "../ui/WatchLaterCard";
 import ConfirmModal from "../ui/ConfirmModal";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * WatchLater Component
@@ -24,12 +24,12 @@ const WatchLater = () => {
   const [modalAction, setModalAction] = useState(() => () => {});
 
   // ---------------- Single Remove ----------------
-  const confirmRemove = (movieId, movieTitle) => {
+  const confirmRemove = (movieId, movieTitle, type) => {
     setModalTitle("Remove Movie?");
     setModalMessage(
-      `Are you sure you want to remove "${movieTitle}" from Watch Later?`
+      `Are you sure you want to remove "${movieTitle}" from Watch Later?`,
     );
-    setModalAction(() => () => removeFromWatchLater(movieId));
+    setModalAction(() => () => removeFromWatchLater(movieId, type));
     setModalOpen(true);
   };
 
@@ -37,18 +37,24 @@ const WatchLater = () => {
   const confirmRemoveAll = () => {
     setModalTitle("Clear Watch Later?");
     setModalMessage(
-      "Are you sure you want to remove all movies from Watch Later?"
+      "Are you sure you want to remove all movies from Watch Later?",
     );
-    setModalAction(() => clearWatchLater);
+    setModalAction(() => () => clearWatchLater());
     setModalOpen(true);
   };
 
   // ---------------- Empty State ----------------
   if (!watchLater.length) {
     return (
-      <p className="text-center mt-10 text-gray-500">
-        No movies in Watch Later list.
-      </p>
+      <div className="flex flex-col items-center mt-20 gap-4">
+        <p className="text-gray-500 text-lg">Your list is empty.</p>
+        <button
+          onClick={() => navigate("/")}
+          className="text-blue-500 underline"
+        >
+          Browse Movies
+        </button>
+      </div>
     );
   }
 
@@ -71,31 +77,30 @@ const WatchLater = () => {
       </div>
 
       {/* Grid of Watch Later Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-        {watchLater.map((movie, index) => (
-          <motion.div
-            key={movie.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-            className="w-full aspect-2/3 object-cover"
-          >
-            <WatchLaterCard
-              movie={movie}
-              onClick={() => {
-                const path =
-                  movie.type === "tv"
-                    ? `/tvshow/${movie.id}`
-                    : `/movie/${movie.id}`;
-                navigate(path);
-              }}
-              onRemove={() =>
-                confirmRemove(movie.id, movie.title || movie.name)
-              }
-            />
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <AnimatePresence>
+          {watchLater.map((movie, index) => (
+            <motion.div
+              key={movie.movieId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.4 }}
+              whileHover={{ scale: 1.05 }}
+              className="w-full aspect-square object-cover"
+            >
+              <WatchLaterCard
+                movie={movie}
+                onClick={() => {
+                  const type = movie.media_type === "tv" ? "tvshow" : "movie";
+                  navigate(`/${type}/${movie.movieId}`);
+                }}
+                onRemove={() =>
+                  confirmRemove(movie.movieId, movie.title, movie.media_type)
+                }
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Confirmation Modal */}
