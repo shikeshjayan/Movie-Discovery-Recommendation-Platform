@@ -69,79 +69,35 @@ const Topbar = () => {
           theme === "dark"
             ? "bg-blue-950 text-blue-100"
             : "bg-blue-100 text-blue-950"
-        }`}>
+        }`}
+      >
         <NavLink to="/dashboard/home" className={navLinkClass}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faHouse} />
-            <span
-              className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-              Home
-            </span>
           </motion.div>
         </NavLink>
 
         <NavLink to="/dashboard/wishlist" className={navLinkClass}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faHeart} />
-            <span
-              className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-              Wishlist
-            </span>
           </motion.div>
         </NavLink>
 
         <NavLink to="/dashboard/history" className={navLinkClass}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faClockRotateLeft} />
-            <span
-              className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-              History
-            </span>
           </motion.div>
         </NavLink>
 
         <NavLink to="/dashboard/myreviews" className={navLinkClass}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faStar} />
-            <span
-              className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-              Reviews
-            </span>
           </motion.div>
         </NavLink>
 
         <NavLink to="/dashboard/watchlater" className={navLinkClass}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faAlarmClock} />
-            <span
-              className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-              Watch Later
-            </span>
           </motion.div>
         </NavLink>
 
@@ -150,7 +106,8 @@ const Topbar = () => {
           {...iconMotion}
           aria-label="Exit Dashboard"
           onClick={() => navigate("/home")}
-          className="relative group p-2 rounded-lg">
+          className="p-2 rounded-lg"
+        >
           <img
             src={
               theme === "dark"
@@ -159,15 +116,6 @@ const Topbar = () => {
             }
             alt="Exit"
           />
-          <span
-            className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-black text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-            Exit
-          </span>
         </motion.button>
 
         {/* Sign Out Button */}
@@ -175,17 +123,9 @@ const Topbar = () => {
           {...iconMotion}
           aria-label="Sign Out"
           onClick={() => setShowConfirm(true)}
-          className="relative group p-2 rounded-lg">
+          className="p-2 rounded-lg"
+        >
           <FontAwesomeIcon icon={faArrowUp} className="text-red-500" />
-          <span
-            className="
-    absolute top-full mt-2 left-1/2 -translate-x-1/2
-    bg-red-600 text-white text-xs px-2 py-1 rounded
-    whitespace-nowrap opacity-0 pointer-events-none
-    group-hover:opacity-100 transition-opacity duration-200
-  ">
-            Log Out
-          </span>
         </motion.button>
       </nav>
     </>

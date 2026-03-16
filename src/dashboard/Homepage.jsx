@@ -5,7 +5,7 @@ import apiClient from "../services/apiClient";
 
 const Homepage = () => {
   const { user, setUser } = useAuth();
-
+  console.log("USER:", user);
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [currentPasswordInput, setCurrentPasswordInput] = useState("");

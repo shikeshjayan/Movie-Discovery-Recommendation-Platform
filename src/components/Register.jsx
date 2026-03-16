@@ -26,6 +26,8 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
   const [matchStrength, setMatchStrength] = useState("");
+  const [showAdminKey, setShowAdminKey] = useState(false);
+  const [isAdminFieldVisible, setIsAdminFieldVisible] = useState(false);
 
   const {
     register,
@@ -43,6 +45,7 @@ const Register = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      adminkey: "",
     },
   });
 
@@ -129,6 +132,7 @@ const Register = () => {
         username: data.name,
         email: data.email,
         password: data.password,
+        adminKey: data.adminkey,
       });
 
       if (result.success) {
@@ -186,6 +190,7 @@ const Register = () => {
               <input
                 id="username"
                 type="text"
+                autoComplete="username"
                 className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.name ? "border-red-500" : ""
                 }`}
@@ -206,6 +211,7 @@ const Register = () => {
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.email ? "border-red-500" : ""
                 }`}
@@ -227,6 +233,7 @@ const Register = () => {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="password"
                   className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.password ? "border-red-500" : ""
                   }`}
@@ -274,6 +281,7 @@ const Register = () => {
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="confirmPassword"
                   className={`border text-[#312F2C] border-blue-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.confirmPassword ? "border-red-500" : ""
                   }`}
@@ -321,6 +329,65 @@ const Register = () => {
               </p>
             )}
 
+            {/* -------------------------------------------------------- */}
+            {/* Admin Key Toggle - Positioned Top Right */}
+            <div className="flex justify-end mb-1">
+              <button
+                type="button"
+                onClick={() => setIsAdminFieldVisible(!isAdminFieldVisible)}
+                className="text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-red-500 transition-colors">
+                {isAdminFieldVisible ? "Hide Key Field" : "Enter Admin Key?"}
+              </button>
+            </div>
+
+            {/* The Input Box & Label (Both Conditionally Visible) */}
+            {isAdminFieldVisible && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="flex flex-col gap-1 overflow-hidden">
+                {/* Label is now inside the visible block */}
+                <label
+                  htmlFor="adminkey"
+                  className="text-blue-500 font-medium text-sm">
+                  Admin Access
+                </label>
+
+                <div className="relative flex items-center">
+                  <input
+                    id="adminkey"
+                    type={showAdminKey ? "text" : "password"}
+                    className={`border text-[#312F2C] border-red-200 bg-red-50/30 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-1 focus:ring-red-400 transition-all ${
+                      errors.adminkey ? "border-red-500" : ""
+                    }`}
+                    placeholder="Enter secret admin key"
+                    {...register("adminkey")}
+                  />
+
+                  {/* Internal Toggle (Show/Hide Characters) */}
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminKey(!showAdminKey)}
+                    className="absolute right-3 focus:outline-none cursor-pointer hover:scale-110 transition-transform"
+                    aria-label={
+                      showAdminKey ? "Hide characters" : "Show characters"
+                    }>
+                    <img
+                      src={showAdminKey ? "/open-eye.png" : "/closed-eye.png"}
+                      alt="toggle visibility"
+                      className="w-4 h-4 opacity-60"
+                    />
+                  </button>
+                </div>
+
+                {errors.adminkey && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.adminkey.message}
+                  </p>
+                )}
+              </motion.div>
+            )}
+            {/* -------------------------------------------------------- */}
             {/* Submit & Clear */}
             <motion.button
               whileHover={{ scale: 1.03 }}

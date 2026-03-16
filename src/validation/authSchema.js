@@ -28,6 +28,8 @@ const passwordRule = yup
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
     "Password must contain uppercase, lowercase, number, and special character",
   );
+// --- Added Admin Key Rule ---
+const adminKeyRule = yup.string().trim().ensure();
 
 // Register schema (formerly signup)
 export const registerSchema = yup.object({
@@ -39,6 +41,7 @@ export const registerSchema = yup.object({
     .trim()
     .required("Confirm password is required")
     .oneOf([yup.ref("password")], "Passwords do not match"),
+  adminkey: adminKeyRule,
 });
 
 // Login schema (formerly signin)

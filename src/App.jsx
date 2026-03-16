@@ -2,11 +2,13 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import RootLayout from "./layouts/RootLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
-import {ProtectedRoute} from "./routes/ProtectedRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 import Login from "./components/Login";
 import Register from "./components/Register";
 import NotFound from "./pages/NotFound";
+import { AdminRoute } from "./routes/AdminRoute";
+import AdminLayout from "./layouts/AdminLayout";
 
 /* --------------------------------------------------
    ROUTER CONFIG (React Router v6.4+)
@@ -130,6 +132,59 @@ const router = createBrowserRouter([
               const { default: Myreviews } =
                 await import("./dashboard/Myreviews");
               return { Component: Myreviews };
+            },
+          },
+        ],
+      },
+    ],
+  },
+
+  /* -------- ADMIN (ADMIN ONLY) -------- */
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        path: "admin",
+        element: <AdminLayout />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { default: AdminOverview } =
+                await import("./admin/AdminOverview");
+              return { Component: AdminOverview };
+            },
+          },
+          {
+            path: "users",
+            lazy: async () => {
+              const { default: AdminUsers } =
+                await import("./admin/AdminUsers");
+              return { Component: AdminUsers };
+            },
+          },
+          {
+            path: "movies",
+            lazy: async () => {
+              const { default: AdminMovies } =
+                await import("./admin/AdminMovies");
+              return { Component: AdminMovies };
+            },
+          },
+          {
+            path: "shows",
+            lazy: async () => {
+              const { default: AdminMovies } =
+                await import("./admin/AdminShows");
+              return { Component: AdminMovies };
+            },
+          },
+          {
+            path: "reviews",
+            lazy: async () => {
+              const { default: AdminReviews } =
+                await import("./admin/AdminReviews");
+              return { Component: AdminReviews };
             },
           },
         ],

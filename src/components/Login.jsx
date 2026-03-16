@@ -9,6 +9,7 @@ import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import BlurImage from "../ui/BlurImage";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import ForgotPasswordModal from "../ui/ForgotPasswordModal";
 
 /**
  * Login Component (formerly Signin)
@@ -30,6 +31,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("");
+
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -84,22 +86,24 @@ const Login = () => {
   }, [passwordValue]);
 
   // ✅ Handle form submission
-const onSubmit = async (data) => {
-    setErrorMessage(""); 
+  const onSubmit = async (data) => {
+    setErrorMessage("");
     try {
       const result = await login(data);
-      
-       if (result?.success) {
-         if (rememberMe) {
-           localStorage.setItem("rememberEmail", data.email);
-         } else {
-           localStorage.removeItem("rememberEmail");
-         }
+
+      if (result?.success) {
+        if (rememberMe) {
+          localStorage.setItem("rememberEmail", data.email);
+        } else {
+          localStorage.removeItem("rememberEmail");
+        }
 
         navigate("/dashboard");
       }
     } catch (error) {
-      const message = error.response?.data?.message || "Invalid email or password. Please try again.";
+      const message =
+        error.response?.data?.message ||
+        "Invalid email or password. Please try again.";
       setErrorMessage(message);
     }
   };
@@ -230,7 +234,7 @@ const onSubmit = async (data) => {
               </div>
               <button
                 type="button"
-                onClick={handleForgotPassword}
+                onClick={() => setShowForgotModal(true)}
                 className="text-blue-500 text-sm hover:underline">
                 Forgot Password?
               </button>
@@ -257,21 +261,10 @@ const onSubmit = async (data) => {
       </div>
 
       {/* Forgot Password Modal */}
-      {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className={`p-6 rounded-lg shadow-xl max-w-sm mx-4 ${theme === "dark" ? "bg-[#312F2C] text-[#ECF0FF]" : "bg-white text-[#312F2C]"}`}>
-            <h3 className="text-xl font-semibold mb-2">Password Reset</h3>
-            <p className="text-sm mb-4 opacity-80">
-              Password reset is not available yet. We'll add it in a future iteration.
-            </p>
-            <button
-              onClick={closeForgotModal}
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">
-              OK
-            </button>
-          </div>
-        </div>
-      )}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+      />
     </section>
   );
 };

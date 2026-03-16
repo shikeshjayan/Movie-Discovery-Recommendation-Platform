@@ -1,14 +1,18 @@
 import { useAuth } from "../../context/AuthContext";
 import {
   faAlarmClock,
-  faHeart,
-  faHouse,
+  faCamera,
+  faComment,
+  faHome,
   faStar,
   faUser,
 } from "@fortawesome/free-regular-svg-icons";
 import {
   faArrowLeft,
   faClockRotateLeft,
+  faCrown,
+  faTv,
+  faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -108,11 +112,11 @@ const Sidebar = ({ open, setOpen }) => {
       {/* Navigation */}
       <nav className="flex flex-col space-y-6 text-xl">
         <NavLink
-          to="/dashboard"
+          to="/admin"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
           <motion.div {...iconMotion} className="relative group">
-            <FontAwesomeIcon icon={faHouse} />
+            <FontAwesomeIcon icon={faHome} />
             <span
               className="
       absolute left-full ml-3 top-1/2 -translate-y-1/2
@@ -126,7 +130,7 @@ const Sidebar = ({ open, setOpen }) => {
         </NavLink>
 
         <NavLink
-          to="/dashboard/home"
+          to="/admin/users"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
           <motion.div {...iconMotion} className="relative group">
@@ -138,17 +142,17 @@ const Sidebar = ({ open, setOpen }) => {
       whitespace-nowrap opacity-0 pointer-events-none
       group-hover:opacity-100 transition-opacity duration-200
     ">
-              User
+              Users
             </span>
           </motion.div>
         </NavLink>
 
         <NavLink
-          to="/dashboard/wishlist"
+          to="/admin/movies"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
           <motion.div {...iconMotion} className="relative group">
-            <FontAwesomeIcon icon={faHeart} />
+            <FontAwesomeIcon icon={faVideo} />
             <span
               className="
       absolute left-full ml-3 top-1/2 -translate-y-1/2
@@ -156,17 +160,17 @@ const Sidebar = ({ open, setOpen }) => {
       whitespace-nowrap opacity-0 pointer-events-none
       group-hover:opacity-100 transition-opacity duration-200
     ">
-              Wishlist
+              Movies
             </span>
           </motion.div>
         </NavLink>
 
         <NavLink
-          to="/dashboard/history"
+          to="/admin/shows"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
           <motion.div {...iconMotion} className="relative group">
-            <FontAwesomeIcon icon={faClockRotateLeft} />
+            <FontAwesomeIcon icon={faTv} />
             <span
               className="
       absolute left-full ml-3 top-1/2 -translate-y-1/2
@@ -174,17 +178,17 @@ const Sidebar = ({ open, setOpen }) => {
       whitespace-nowrap opacity-0 pointer-events-none
       group-hover:opacity-100 transition-opacity duration-200
     ">
-              History
+              TV Shows
             </span>
           </motion.div>
         </NavLink>
 
         <NavLink
-          to="/dashboard/myreviews"
+          to="/admin/reviews"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
           <motion.div {...iconMotion} className="relative group">
-            <FontAwesomeIcon icon={faStar} />
+            <FontAwesomeIcon icon={faComment} />
             <span
               className="
       absolute left-full ml-3 top-1/2 -translate-y-1/2
@@ -192,7 +196,7 @@ const Sidebar = ({ open, setOpen }) => {
       whitespace-nowrap opacity-0 pointer-events-none
       group-hover:opacity-100 transition-opacity duration-200
     ">
-              Reviews
+              Comments
             </span>
           </motion.div>
         </NavLink>
@@ -201,17 +205,8 @@ const Sidebar = ({ open, setOpen }) => {
           to="/dashboard/watchlater"
           className={navLinkClass}
           onClick={() => setOpen(false)}>
-          <motion.div {...iconMotion} className="relative group">
+          <motion.div {...iconMotion}>
             <FontAwesomeIcon icon={faAlarmClock} />
-            <span
-              className="
-      absolute left-full ml-3 top-1/2 -translate-y-1/2
-      bg-black text-white text-xs px-2 py-1 rounded
-      whitespace-nowrap opacity-0 pointer-events-none
-      group-hover:opacity-100 transition-opacity duration-200
-    ">
-              Watch Later
-            </span>
           </motion.div>
         </NavLink>
 
@@ -220,7 +215,7 @@ const Sidebar = ({ open, setOpen }) => {
           {...iconMotion}
           aria-label="Exit Dashboard"
           onClick={() => navigate("/home")}
-          className="relative group flex items-center justify-center p-2 rounded-lg">
+          className="flex items-center justify-center p-2 rounded-lg relative group">
           <img
             src={
               theme === "dark"
@@ -244,7 +239,7 @@ const Sidebar = ({ open, setOpen }) => {
           {...iconMotion}
           aria-label="Sign Out"
           onClick={() => setShowConfirm(true)}
-          className="relative group p-2 rounded-lg">
+          className="p-2 rounded-lg relative group">
           <FontAwesomeIcon icon={faArrowLeft} className="text-red-500" />
           <span
             className="
