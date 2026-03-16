@@ -19,7 +19,7 @@ const mediaSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// ✅ Prevent duplicates
 mediaSchema.index({ tmdbId: 1, mediaType: 1 }, { unique: true });
+mediaSchema.index({ title: "text", overview: "text" });
 
 export default mongoose.model("Media", mediaSchema);
