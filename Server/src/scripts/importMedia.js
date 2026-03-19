@@ -1,50 +1,53 @@
 // src/scripts/importMedia.js
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname } from "path";
 import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// ✅ Use the same dotenv approach as server.js
 dotenv.config();
 
-console.log(
-  "TMDB_API_KEY:",
-  process.env.TMDB_API_KEY ? "✅ Loaded" : "❌ Missing",
-);
+console.log("TMDB_API_KEY:", process.env.TMDB_API_KEY ? "✅ Loaded" : "❌ Missing");
 console.log("MONGO_URL:", process.env.MONGO_URL ? "✅ Loaded" : "❌ Missing");
 
 import mongoose from "mongoose";
 import axios from "axios";
-import Media from "../models/media.model.js"; // ✅ src/models/
+import Media from "../models/media.model.js";
+import { withRetry, fetchGenresFromTMDB } from "../utils/genreUtils.js";
 
-// Configuration - change MAX_PAGES to fetch more/less data
-const MAX_PAGES = process.argv.includes("--all") ? 500 : 10; // Default 10 pages, use --all for all 500
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const API_KEY = process.env.TMDB_API_KEY;
+const BATCH_SIZE = 5;
+const PAGE_DELAY = 250;
+
+const MAX_PAGES = process.argv.includes("--all") ? 500 : 10;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const fetchPageBatch = async (pages) => {
+  const [moviesRes, tvRes] = await Promise.all([
+    Promise.all(pages.map((page) => axios.get(`${TMDB_BASE_URL}/movie/popular?api_key=${API_KEY}&page=${page}`))),
+    Promise.all(pages.map((page) => axios.get(`${TMDB_BASE_URL}/tv/popular?api_key=${API_KEY}&page=${page}`))),
+  ]);
+
+  const movies = moviesRes.flatMap((res) => res.data.results.map((m) => ({ ...m, mediaType: "movie" })));
+  const tv = tvRes.flatMap((res) => res.data.results.map((t) => ({ ...t, mediaType: "tv" })));
+
+  return [...movies, ...tv];
+};
 
 await mongoose.connect(process.env.MONGO_URL);
 console.log("✅ MongoDB connected");
 
 const importMedia = async () => {
-  console.log(`🚀 Starting media import... (Max pages: ${MAX_PAGES})`);
+  console.log(`🚀 Starting media import... (Max pages: ${MAX_PAGES}, Batch size: ${BATCH_SIZE})`);
   let total = 0;
   let errors = 0;
+  const failedItems = [];
 
-  // ✅ Fetch genre map using direct axios
-  console.log("Fetching genre map...");
-  const [movieGenresRes, tvGenresRes] = await Promise.all([
-    axios.get(
-      `https://api.themoviedb.org/3/genre/movie/list?api_key=${process.env.TMDB_API_KEY}`,
-    ),
-    axios.get(
-      `https://api.themoviedb.org/3/genre/tv/list?api_key=${process.env.TMDB_API_KEY}`,
-    ),
-  ]);
-
-  const genreMap = {};
-  [...movieGenresRes.data.genres, ...tvGenresRes.data.genres].forEach((g) => {
-    genreMap[g.id] = g.name;
-  });
+  console.log("📡 Fetching genre map...");
+  const genreMap = await fetchGenresFromTMDB();
   console.log("✅ Genre map fetched:", Object.keys(genreMap).length, "genres");
 
   const clearExisting = process.argv.includes("--clear");
@@ -53,63 +56,60 @@ const importMedia = async () => {
     console.log("🗑️ Old media cleared");
   }
 
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    console.log(`📄 Fetching page ${page}/${MAX_PAGES}...`);
+  for (let i = 1; i <= MAX_PAGES; i += BATCH_SIZE) {
+    const pageBatch = [];
+    for (let j = 0; j < BATCH_SIZE && i + j <= MAX_PAGES; j++) {
+      pageBatch.push(i + j);
+    }
+
+    console.log(`📦 Processing batch: pages ${pageBatch[0]}-${pageBatch[pageBatch.length - 1]}`);
 
     try {
-      // ✅ Fetch movies and TV using direct axios
-      const [moviesRes, tvRes] = await Promise.all([
-        axios.get(
-          `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
-        ),
-        axios.get(
-          `https://api.themoviedb.org/3/tv/popular?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
-        ),
-      ]);
+      const items = await withRetry(async () => fetchPageBatch(pageBatch), 3, 1000);
 
-      const combined = [
-        ...moviesRes.data.results.map((m) => ({ ...m, mediaType: "movie" })),
-        ...tvRes.data.results.map((t) => ({ ...t, mediaType: "tv" })),
-      ];
-
-      for (const item of combined) {
-        try {
-          await Media.findOneAndUpdate(
-            { tmdbId: item.id, mediaType: item.mediaType },
-            {
+      const operations = items.map((item) => ({
+        updateOne: {
+          filter: { tmdbId: item.id, mediaType: item.mediaType },
+          update: {
+            $set: {
               tmdbId: item.id,
               mediaType: item.mediaType,
               title: item.title || item.name,
               overview: item.overview,
               posterPath: item.poster_path,
               backdropPath: item.backdrop_path,
-              releaseDate: item.release_date || item.first_air_date || null,
+              releaseDate: item.release_date || item.first_air_date ? new Date(item.release_date || item.first_air_date) : null,
               popularity: item.popularity,
               voteAverage: item.vote_average,
               voteCount: item.vote_count,
-              language: item.original_language,
-              genres: (item.genre_ids || []).map(
-                (id) => genreMap[id] || "Unknown",
-              ),
+              originalLanguage: item.original_language,
+              genres: (item.genre_ids || []).map((id) => genreMap[id] || "Unknown"),
             },
-            { upsert: true, returnDocument: "after" },
-          );
-          total++;
-        } catch (err) {
-          errors++;
-          if (errors <= 5)
-            console.error(`❌ Failed to save ${item.id}:`, err.message);
-        }
+          },
+          upsert: true,
+        },
+      }));
+
+      const result = await Media.bulkWrite(operations, { ordered: false });
+      total += result.upsertedCount + result.modifiedCount;
+
+      if (result.upsertedCount + result.modifiedCount === 0 && items.length > 0) {
+        errors += items.length;
       }
 
-      console.log(`✅ Page ${page} done — total: ${total}`);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      console.log(`✅ Batch done — imported this batch: ${result.upsertedCount + result.modifiedCount}, total: ${total}`);
+      await wait(PAGE_DELAY);
     } catch (err) {
-      console.error(`❌ Page ${page} failed:`, err.message);
+      console.error(`❌ Batch pages ${pageBatch[0]}-${pageBatch[pageBatch.length - 1]} failed:`, err.message);
+      errors += BATCH_SIZE * 20;
     }
   }
 
   console.log(`\n✅ Done — Total imported: ${total}, Errors: ${errors}`);
+  if (failedItems.length > 0) {
+    console.log("⚠️ Failed items (first 10):", failedItems.slice(0, 10));
+  }
+
   await mongoose.disconnect();
   process.exit();
 };

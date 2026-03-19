@@ -85,9 +85,16 @@ export const register = async (req, res) => {
     console.error("Register error:", error);
 
     if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const message =
+        field === "email"
+          ? "Email is already in use"
+          : field === "username"
+            ? "Username is already taken"
+            : `${field} already exists`;
       return res.status(400).json({
         success: false,
-        message: "Email is already in use",
+        message,
       });
     }
 

@@ -1,3 +1,4 @@
+import "./jobs/trainJob.js";
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -12,6 +13,8 @@ import { WatchlaterRouter } from "./routes/watchLater.routes.js";
 import { recommendationRouter } from "./routes/recommendation.routes.js";
 import { wishlistRouter } from "./routes/wishlist.routes.js";
 import { historyRouter } from "./routes/history.routes.js";
+import { movieRouter } from "./routes/movie.routes.js";
+import { feedbackRouter } from "./routes/feedback.routes.js";
 
 dotenv.config();
 
@@ -41,6 +44,10 @@ app.use("/api/watchlater", WatchlaterRouter);
 app.use("/api/history", historyRouter);
 
 app.use("/api/recommendations", recommendationRouter);
+app.use("/api/feedback", feedbackRouter);
+
+
+app.use("/api/movies", movieRouter);
 
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
@@ -58,7 +65,6 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     await connectDB();
-
     httpServer.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
